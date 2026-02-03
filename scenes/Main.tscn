@@ -1,19 +1,15 @@
 [gd_scene format=3 uid="uid://bqx8x7rlnhjwy"]
 
-[ext_resource type="Script" uid="uid://bf0op368p4sac" path="res://scripts/GridManager.gd" id="1_0abcd"]
 [ext_resource type="Script" uid="uid://d3gb6npr6oo4m" path="res://scripts/GameManager.gd" id="2_game"]
 [ext_resource type="PackedScene" uid="uid://dev1vlrye5a0i" path="res://scenes/GridManager.tscn" id="2_rarhs"]
 [ext_resource type="Script" uid="uid://bewyf1ek3euuf" path="res://scripts/UIManager.gd" id="3_ui"]
 
 [node name="Main" type="Node2D" unique_id=1302130063]
-script = ExtResource("1_0abcd")
 
 [node name="GridManager" parent="." unique_id=895251005 instance=ExtResource("2_rarhs")]
-script = ExtResource("1_0abcd")
-grid_width = 8
-grid_height = 8
+grid_width = 5
+grid_height = 5
 hex_size = 32.0
-tile_scene = null
 
 [node name="GameManager" type="Node" parent="." unique_id=1588637464]
 script = ExtResource("2_game")
@@ -28,6 +24,7 @@ grow_vertical = 2
 script = ExtResource("3_ui")
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=324529156]
+position = Vector2(348, 170)
 
 [node name="UI" type="CanvasLayer" parent="." unique_id=1457645348]
 

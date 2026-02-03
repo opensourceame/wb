@@ -6,11 +6,11 @@ signal tile_selected(tile: HexTile)
 @export var letter: String = "A"
 @export var grid_q: int = 0
 @export var grid_r: int = 0
-@export var hex_radius: float = 64.0
+@export var hex_radius: float = 32.0
 
 var is_selected: bool = false
-var normal_color: Color = Color.WHITE
-var selected_color: Color = Color.YELLOW
+var normal_color:   Color = Color.WHITE
+var selected_color: Color = Color.DARK_GREEN
 
 func _ready():
 	letter = get_random_letter()

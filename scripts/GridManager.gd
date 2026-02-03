@@ -1,14 +1,16 @@
 extends Node2D
 class_name GridManager
 
-@export var grid_width: int = 3
-@export var grid_height: int = 3
-@export var hex_size: float = 64.0
+@export var grid_width:  int = 2
+@export var grid_height: int = 2
+@export var hex_size: float = 48.0
 @export var tile_scene: PackedScene
 
 var grid: Dictionary = {}
 var selected_tiles: Array[HexTile] = []
 var current_word: String = ""
+var columns = []
+var rows    = []
 
 func _ready():
 	if tile_scene == null:
@@ -16,13 +18,16 @@ func _ready():
 	create_hex_grid()
 
 func create_hex_grid():
-	for q in range(-grid_width / 2, grid_width / 2 + 1):
-		for r in range(-grid_height / 2, grid_height / 2 + 1):
-			if abs(q + r) <= grid_height / 2:
-				create_hex_tile(q, r)
-
+	for q in range(grid_width):
+		columns.append([])
+		for r in range(grid_height):
+			var tile = create_hex_tile(q, r)
+			columns[q].append(tile)
+	print("GRID: created grid")
+	
 func create_hex_tile(q: int, r: int):
 	var tile = tile_scene.instantiate()
+	tile.hex_radius = hex_size
 	add_child(tile)
 	
 	var pos = hex_to_pixel(q, r)
@@ -33,15 +38,24 @@ func create_hex_tile(q: int, r: int):
 	
 	grid[Vector2(q, r)] = tile
 	tile.tile_selected.connect(_on_tile_selected)
+	
+	return tile
 
 func hex_to_pixel(q: int, r: int) -> Vector2:
-	var x = hex_size * (3.0/2.0 * q)
-	var y = hex_size * (sqrt(3.0)/2.0 * q + sqrt(3.0) * r)
+	var hex_width  = hex_size * 2.0
+	var hex_height = hex_size * sqrt(3.0)
+	
+	var x = q * hex_width * 0.75
+	var y = r * hex_height
+	
+	if q % 2 == 1:
+		y += hex_height * 0.5
+	
 	return Vector2(x, y)
 
 func get_random_letter() -> String:
 	var letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-	var weights = [8, 2, 2, 4, 12, 2, 3, 6, 8, 1, 1, 4, 3, 6, 8, 2, 1, 6, 6, 8, 4, 2, 2, 1, 2, 1]
+	var weights = [10, 2, 2, 4, 15, 2, 3, 6, 8, 1, 1, 4, 3, 6, 10, 2, 1, 6, 6, 8, 4, 2, 2, 1, 2, 1]
 	
 	var total_weight = 0
 	for weight in weights:
@@ -81,11 +95,19 @@ func is_adjacent_to_last_selected(tile: HexTile) -> bool:
 		return true
 	
 	var last_tile = selected_tiles[-1]
-	var dq = abs(tile.grid_q - last_tile.grid_q)
-	var dr = abs(tile.grid_r - last_tile.grid_r)
-	var ds = abs((tile.grid_q + tile.grid_r) - (last_tile.grid_q + last_tile.grid_r))
+	var dq = tile.grid_q - last_tile.grid_q
+	var dr = tile.grid_r - last_tile.grid_r
 	
-	return (dq <= 1 and dr <= 1 and ds <= 1)
+	if dq == 0 and abs(dr) == 1:
+		return true
+	
+	if abs(dq) == 1:
+		if last_tile.grid_q % 2 == 0:
+			return dr >= 0 and dr <= 1
+		else:
+			return dr >= -1 and dr <= 0
+	
+	return false
 
 func recalculate_word():
 	current_word = ""
