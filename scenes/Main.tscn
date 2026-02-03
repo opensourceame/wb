@@ -9,7 +9,7 @@
 [node name="GridManager" parent="." unique_id=895251005 instance=ExtResource("2_rarhs")]
 grid_width = 5
 grid_height = 5
-hex_size = 32.0
+hex_size = 64.0
 
 [node name="GameManager" type="Node" parent="." unique_id=1588637464]
 script = ExtResource("2_game")
@@ -24,7 +24,7 @@ grow_vertical = 2
 script = ExtResource("3_ui")
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=324529156]
-position = Vector2(348, 170)
+position = Vector2(226, 336)
 
 [node name="UI" type="CanvasLayer" parent="." unique_id=1457645348]
 

@@ -9,7 +9,8 @@ signal tile_selected(tile: HexTile)
 @export var hex_radius: float = 32.0
 
 var is_selected: bool = false
-var normal_color:   Color = Color.WHITE
+var normal_color:   Color = Color.LIGHT_GOLDENROD
+var outline_color:  Color = Color.ORANGE
 var selected_color: Color = Color.DARK_GREEN
 
 func _ready():
@@ -47,7 +48,9 @@ func draw_hexagon(center: Vector2, radius: float, color: Color):
 		points.append(Vector2(x, y))
 	
 	draw_colored_polygon(points, color, points)
-	#draw_polygon(points, PackedColorArray([Color.BLACK]))
+	var outline_points = points.duplicate()
+	outline_points.append(points[0])  # Close the loop
+	draw_polyline(outline_points, outline_color, 3.0)
 
 func draw_letter():
 	var font = ThemeDB.fallback_font
