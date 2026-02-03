@@ -1,0 +1,115 @@
+[gd_scene format=3 uid="uid://bqx8x7rlnhjwy"]
+
+[ext_resource type="Script" uid="uid://bf0op368p4sac" path="res://scripts/GridManager.gd" id="1_0abcd"]
+[ext_resource type="Script" uid="uid://d3gb6npr6oo4m" path="res://scripts/GameManager.gd" id="2_game"]
+[ext_resource type="PackedScene" uid="uid://dev1vlrye5a0i" path="res://scenes/GridManager.tscn" id="2_rarhs"]
+[ext_resource type="Script" uid="uid://bewyf1ek3euuf" path="res://scripts/UIManager.gd" id="3_ui"]
+
+[node name="Main" type="Node2D" unique_id=1302130063]
+script = ExtResource("1_0abcd")
+
+[node name="GridManager" parent="." unique_id=895251005 instance=ExtResource("2_rarhs")]
+script = ExtResource("1_0abcd")
+grid_width = 8
+grid_height = 8
+hex_size = 32.0
+tile_scene = null
+
+[node name="GameManager" type="Node" parent="." unique_id=1588637464]
+script = ExtResource("2_game")
+
+[node name="UIManager" type="Control" parent="." unique_id=101879260]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("3_ui")
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=324529156]
+
+[node name="UI" type="CanvasLayer" parent="." unique_id=1457645348]
+
+[node name="WordDisplay" type="Label" parent="UI" unique_id=50927497]
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -100.0
+offset_top = -80.0
+offset_right = 100.0
+offset_bottom = -40.0
+grow_horizontal = 2
+grow_vertical = 0
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Score" type="Label" parent="UI" unique_id=1372580073]
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = -80.0
+offset_right = 120.0
+offset_bottom = -40.0
+grow_vertical = 0
+text = "0"
+vertical_alignment = 1
+
+[node name="TimeDisplay" type="Label" parent="UI" unique_id=269649100]
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -120.0
+offset_top = -80.0
+offset_right = -20.0
+offset_bottom = -40.0
+grow_horizontal = 0
+grow_vertical = 0
+text = "00:00"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="WordsFound" type="Label" parent="UI" unique_id=1215204605]
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = -120.0
+offset_right = 200.0
+offset_bottom = -80.0
+grow_vertical = 0
+text = "Words: 0"
+vertical_alignment = 1
+
+[node name="SubmitButton" type="Button" parent="UI" unique_id=559092073]
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -50.0
+offset_top = -120.0
+offset_right = 50.0
+offset_bottom = -80.0
+grow_horizontal = 2
+grow_vertical = 0
+text = "Submit"
+
+[node name="ClearButton" type="Button" parent="UI" unique_id=1220611952]
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -50.0
+offset_top = -160.0
+offset_right = 50.0
+offset_bottom = -120.0
+grow_horizontal = 2
+grow_vertical = 0
+text = "Clear"

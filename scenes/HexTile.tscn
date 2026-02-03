@@ -1,0 +1,16 @@
+[gd_scene format=3 uid="uid://c1n2v3w4x5y6"]
+
+[ext_resource type="Script" uid="uid://bgsfj1c1tklfk" path="res://scripts/HexTile.gd" id="1_hex"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_1"]
+radius = 28.0
+
+[node name="HexTile" type="Node2D" unique_id=1263209078]
+script = ExtResource("1_hex")
+
+[node name="Area2D" type="Area2D" parent="." unique_id=5722082]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D" unique_id=1973369788]
+shape = SubResource("CircleShape2D_1")
+
+[connection signal="input_event" from="Area2D" to="." method="_on_area_2d_input_event"]
