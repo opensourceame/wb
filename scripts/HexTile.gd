@@ -8,6 +8,7 @@ signal tile_selected(tile: HexTile)
 @export var grid_r: int = 0
 @export var hex_radius: float = 32.0
 
+var neighbours: Array = []
 var is_selected: bool = false
 var normal_color:   Color = Color.LIGHT_GOLDENROD
 var outline_color:  Color = Color.ORANGE
@@ -16,6 +17,9 @@ var selected_color: Color = Color.DARK_GREEN
 func _ready():
 	letter = get_random_letter()
 
+func add_neighbour(tile: HexTile):
+	neighbours.append(tile)
+	
 func get_random_letter() -> String:
 	var letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 	var weights = [8, 2, 2, 4, 12, 2, 3, 6, 8, 1, 1, 4, 3, 6, 8, 2, 1, 6, 6, 8, 4, 2, 2, 1, 2, 1]

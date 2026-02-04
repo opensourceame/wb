@@ -26,7 +26,51 @@ func create_hex_grid():
 		for r in range(grid_height):
 			var tile = create_hex_tile(q, r)
 			columns[q].append(tile)
+		
 	print("GRID: created grid")
+	print_grid()
+	
+	
+func print_grid():
+	var t = ""
+	for x in range(grid_width):
+		var dir
+		if x % 2:
+			dir = -1
+		else:
+			dir = 1
+			
+		for y in range(grid_height):
+			var tile = columns[x][y]
+			t += tile.letter
+			
+			# if there is a tile above, add it as a neighbour
+			if columns[x][y-1]:
+				tile.add_neighbour(columns[x][y-1])
+			# if there is a tile below, add it as a neighbour
+			if (y+1) < grid_height and columns[x][y+1]:
+				tile.add_neighbour(columns[x][y+1])
+			
+			if columns[x-1][y]:
+				tile.add_neighbour(columns[x-1][y])
+
+			if grid_width > x+1 and columns[x+1][y]:
+				tile.add_neighbour(columns[x+1][y])
+
+			if grid_height > y+dir and columns[x-1][y+dir]:
+				tile.add_neighbour(columns[x-1][y+dir])
+
+			if (y+dir) >= 0 and (y+dir) < grid_height \
+				and (x+1) < grid_width \
+				and columns[x+1][y+dir]:
+					tile.add_neighbour(columns[x+1][y+dir])
+		t += "\n"
+		
+	print(t)
+
+	print("2:2 = " + columns[2][2].name + "\n")
+	for n in columns[2][2].neighbours:
+		print(n.name)
 	
 func create_hex_tile(q: int, r: int):
 	var tile = tile_scene.instantiate()
@@ -38,6 +82,7 @@ func create_hex_tile(q: int, r: int):
 	tile.grid_q = q
 	tile.grid_r = r
 	tile.letter = get_random_letter()
+	tile.name = tile.letter
 	
 	grid[Vector2(q, r)] = tile
 	tile.tile_selected.connect(_on_tile_selected)
@@ -52,7 +97,7 @@ func hex_to_pixel(q: int, r: int) -> Vector2:
 	var y = r * hex_height
 	
 	if q % 2 == 1:
-		y += hex_height * 0.5
+		y -= hex_height * 0.5
 	
 	return Vector2(x, y)
 
@@ -108,21 +153,8 @@ func is_adjacent_to_last_selected(tile: HexTile) -> bool:
 		return true
 	
 	var last_tile = selected_tiles[-1]
-	
 
-	var dq = tile.grid_q - last_tile.grid_q
-	var dr = tile.grid_r - last_tile.grid_r
-	
-	if dq == 0 and abs(dr) == 1:
-		return true
-	
-	if abs(dq) == 1:
-		if last_tile.grid_q % 2 == 0:
-			return dr >= 0 and dr <= 1
-		else:
-			return dr >= -1 and dr <= 0
-	
-	return false
+	return last_tile.neighbours.find(tile)
 
 func recalculate_word():
 	current_word = ""
