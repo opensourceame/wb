@@ -1,6 +1,7 @@
 extends Node2D
 class_name HexTile
 
+enum State { IDLE, SELECTED, IN_WORD }
 signal tile_selected(tile: HexTile)
 
 @export var letter: String = "A"
@@ -10,11 +11,13 @@ signal tile_selected(tile: HexTile)
 
 var neighbours: Array = []
 var is_selected: bool = false
-var normal_color:   Color = Color.LIGHT_GOLDENROD
-var outline_color:  Color = Color.ORANGE
-var selected_color: Color = Color.DARK_GREEN
-var hover_color:    Color = Color.DARK_GOLDENROD
+var normal_color:     Color = Color.LIGHT_GOLDENROD
+var outline_color:    Color = Color.ORANGE
+var selected_color :  Color = Color.DARK_GREEN
+var hover_color:      Color = Color.DARK_GOLDENROD
 var validation_color: Color = Color.WHITE  # NEW: Dynamic outline color
+var in_word_color:    Color = Color.RED
+var current_state = State.IDLE
 
 func _ready():
 	letter = get_random_letter()
@@ -48,7 +51,15 @@ func get_random_letter() -> String:
 	return "E"
 
 func _draw():
-	var color = selected_color if is_selected else normal_color
+	var color
+	match current_state:
+		State.IDLE:
+			color = normal_color
+		State.SELECTED:
+			color = selected_color
+		State.IN_WORD:
+			color = in_word_color
+
 	draw_hexagon(Vector2.ZERO, hex_radius, color)
 	draw_letter()
 
@@ -77,10 +88,18 @@ func draw_letter():
 	
 	draw_string(font, letter_pos, letter, HORIZONTAL_ALIGNMENT_CENTER, -1, font_size, Color.BLACK)
 
-func set_selected(selected: bool):
-	is_selected = selected
+func set_idle():
+	current_state = State.IDLE
+	queue_redraw()
+	
+func set_selected():
+	current_state = State.SELECTED
 	queue_redraw()
 
+func set_in_word():
+	current_state = State.IN_WORD
+	queue_redraw()
+	
 # NEW: Set validation color for outline feedback
 func set_validation_color(color: Color):
 	validation_color = color

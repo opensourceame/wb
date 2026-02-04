@@ -32,8 +32,7 @@ func _ready():
 	
 	# Get references to game systems
 	game_manager = get_node_or_null("../GameManager")
-	if game_manager:
-		word_checker = game_manager.word_checker
+	word_checker = game_manager.word_checker
 	
 	create_hex_grid()
 
@@ -147,7 +146,7 @@ func select_tile(tile: HexTile):
 		return
 		
 	selected_tiles.append(tile)
-	tile.set_selected(true)
+	tile.set_selected()
 	current_word += tile.letter
 	recalculate_word()
 	
@@ -177,8 +176,8 @@ func deselect_tile(tile: HexTile):
 
 	selected_tiles.erase(tile)
 	if not particle_streams.is_empty():
-		particle_streams[-1].queue_free()
-	tile.set_selected(false)
+		particle_streams[-1].call_deferred("queue_free")
+	tile.set_idle()
 	recalculate_word()
 	
 	# NEW: Update validation after deselecting
@@ -188,7 +187,6 @@ func deselect_tile(tile: HexTile):
 	
 	# Clear all visual connections and redraw them for remaining selected tiles
 	if use_particles:
-		
 		redraw_all_particles()
 	else:
 		clear_arrows()
@@ -212,6 +210,13 @@ func recalculate_word():
 		
 func update_word_display():
 	%WordDisplay.text = current_word
+	
+	if game_manager.word_checker.is_valid_word(current_word):
+		highlight_valid_word()
+		
+func highlight_valid_word():
+	for tile in selected_tiles:
+		tile.set_in_word()
 
 # NEW: Real-time prefix validation
 func update_prefix_validation():
@@ -220,8 +225,6 @@ func update_prefix_validation():
 		
 	# Check if current word is a valid prefix
 	var is_valid_prefix = word_checker.is_valid_prefix(current_word)
-	
-
 	
 	# Update visual feedback for tiles
 	update_tile_validation_feedback(is_valid_prefix)
@@ -248,7 +251,7 @@ func update_word_display_color(is_valid_prefix: bool):
 
 func clear_selection():
 	for tile in selected_tiles:
-		tile.set_selected(false)
+		tile.set_idle()
 	selected_tiles.clear()
 	current_word = ""
 	update_word_display()
@@ -315,7 +318,7 @@ func create_particle_stream(from_tile: HexTile, to_tile: HexTile):
 	particles.amount = 10
 	particles.lifetime = 1.0  # Longer lifetime for visibility
 	particles.explosiveness = 0.0  # Continuous emission
-	particles.fixed_fps = 60.0
+	particles.fixed_fps =100.0
 	
 	# Gold/yellow gradient colors
 	particles.color = Color.GOLD
@@ -331,8 +334,8 @@ func create_particle_stream(from_tile: HexTile, to_tile: HexTile):
 	particles.initial_velocity_max = distance / particles.lifetime * 1.2
 	
 	# Particle size and shape
-	particles.scale_amount_min = 3.0
-	particles.scale_amount_max = 4.0
+	particles.scale_amount_min = 5.0
+	particles.scale_amount_max = 7.0
 	#particles.scale_amount_random = 0.5
 	
 	# Gravity and physics

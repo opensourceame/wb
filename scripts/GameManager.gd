@@ -42,17 +42,19 @@ func submit_word(word: String):
 		return
 	
 	
-	if word_checker.is_valid_word(word):
-		var points = word_checker.get_word_score(word)
-		add_score(points)
-		words_found.append(word)
-		word_submitted.emit(word, points)
-		
-		grid_manager.clear_selection()
-		
-		return true
-	else:
+	if not word_checker.is_valid_word(word):
 		return false
+		
+	var points = word_checker.get_word_score(word)
+	add_score(points)
+	words_found.append(word)
+	word_submitted.emit(word, points)
+	
+	grid_manager.clear_selection()
+	
+	$"../Sounds/Kaching".play()
+	
+	return true
 
 func add_score(points: int):
 	score += points

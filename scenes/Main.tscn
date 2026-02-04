@@ -3,15 +3,24 @@
 [ext_resource type="Script" uid="uid://d3gb6npr6oo4m" path="res://scripts/GameManager.gd" id="2_game"]
 [ext_resource type="PackedScene" uid="uid://dev1vlrye5a0i" path="res://scenes/GridManager.tscn" id="2_rarhs"]
 [ext_resource type="Script" uid="uid://bewyf1ek3euuf" path="res://scripts/UIManager.gd" id="3_ui"]
+[ext_resource type="AudioStream" uid="uid://dqhsrebau2rjr" path="res://sounds/kaching.mp3" id="4_rarhs"]
+
+[sub_resource type="SystemFont" id="SystemFont_rarhs"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_0bbpv"]
-font_size = 31
+font = SubResource("SystemFont_rarhs")
+font_size = 41
+font_color = Color(0.65836513, 0.65799564, 0, 1)
+outline_size = 10
+outline_color = Color(0.019554144, 0.019554138, 0.019554136, 1)
+shadow_color = Color(0.34781712, 0.3478169, 0.34781682, 0.67058825)
 
 [node name="Main" type="Node2D" unique_id=1302130063]
 
 [node name="GridManager" parent="." unique_id=895251005 instance=ExtResource("2_rarhs")]
-grid_width = 5
-grid_height = 5
+position = Vector2(62, 164)
+grid_width = 6
+grid_height = 6
 hex_size = 64.0
 
 [node name="Tiles" type="CanvasLayer" parent="GridManager" unique_id=305873846]
@@ -19,9 +28,6 @@ follow_viewport_enabled = true
 
 [node name="Arrows" type="CanvasLayer" parent="GridManager" unique_id=1547026832]
 follow_viewport_enabled = true
-
-[node name="Camera2D" type="Camera2D" parent="GridManager" unique_id=324529156]
-position = Vector2(338, 338)
 
 [node name="GameManager" type="Node" parent="." unique_id=1588637464]
 script = ExtResource("2_game")
@@ -44,13 +50,12 @@ anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
-offset_left = -290.0
-offset_top = -996.0
-offset_right = -90.0
-offset_bottom = -956.0
+offset_left = -259.0
+offset_top = -202.0
+offset_right = 199.0
+offset_bottom = -145.0
 grow_horizontal = 2
 grow_vertical = 0
-text = "WINS"
 label_settings = SubResource("LabelSettings_0bbpv")
 horizontal_alignment = 1
 vertical_alignment = 1
@@ -101,10 +106,10 @@ anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
-offset_left = -50.0
-offset_top = -120.0
-offset_right = 50.0
-offset_bottom = -80.0
+offset_left = 281.0
+offset_top = -199.0
+offset_right = 381.0
+offset_bottom = -159.0
 grow_horizontal = 2
 grow_vertical = 0
 text = "Submit"
@@ -115,10 +120,18 @@ anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
-offset_left = -50.0
-offset_top = -160.0
-offset_right = 50.0
-offset_bottom = -120.0
+offset_left = 281.0
+offset_top = -239.0
+offset_right = 381.0
+offset_bottom = -199.0
 grow_horizontal = 2
 grow_vertical = 0
 text = "Clear"
+
+[node name="Sounds" type="Node" parent="." unique_id=948160424]
+
+[node name="Kaching" type="AudioStreamPlayer" parent="Sounds" unique_id=319395583]
+stream = ExtResource("4_rarhs")
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=324529156]
+position = Vector2(246, 344)
