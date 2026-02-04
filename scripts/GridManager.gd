@@ -154,7 +154,10 @@ func is_adjacent_to_last_selected(tile: HexTile) -> bool:
 	
 	var last_tile = selected_tiles[-1]
 
-	return last_tile.neighbours.find(tile)
+	print("last tile = ", tile)
+	print("tile neighbours = ", tile.neighbour_letters())
+	
+	return last_tile.neighbours.find(tile) > 0
 
 func recalculate_word():
 	current_word = ""
