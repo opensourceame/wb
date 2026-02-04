@@ -14,6 +14,8 @@ var selected_tiles: Array[HexTile] = []
 var current_word: String = ""
 var columns = []
 var rows    = []
+var use_particles: bool = true
+var particle_streams: Array[CPUParticles2D] = []
 
 func _ready():
 	if tile_scene == null:
@@ -126,27 +128,42 @@ func _on_tile_selected(tile: HexTile):
 		select_tile(tile)
 
 func select_tile(tile: HexTile):
-	if is_adjacent_to_last_selected(tile):
-		selected_tiles.append(tile)
-		tile.set_selected(true)
-		current_word += tile.letter
-		recalculate_word()
-		update_word_display()
+	if not is_adjacent_to_last_selected(tile):
+		return
 		
-		# Draw arrow from previous tile to current tile
-		if selected_tiles.size() > 1:
-			var previous_tile = selected_tiles[-2]
+	selected_tiles.append(tile)
+	tile.set_selected(true)
+	current_word += tile.letter
+	recalculate_word()
+	update_word_display()
+	
+	# Create visual connection from previous tile to current tile
+	if selected_tiles.size() > 1:
+		var previous_tile = selected_tiles[-2]
+		if use_particles:
+			create_particle_stream(previous_tile, tile)
+		else:
 			draw_arrow(previous_tile, tile)
 
 func deselect_tile(tile: HexTile):
+	if not selected_tiles[-1] == tile:
+		printerr("tried to deselect tile which isn't the last")
+		return
+
 	selected_tiles.erase(tile)
+	if not particle_streams.is_empty():
+		particle_streams[-1].queue_free()
 	tile.set_selected(false)
 	recalculate_word()
 	update_word_display()
 	
-	# Clear all arrows and redraw them for remaining selected tiles
-	clear_arrows()
-	redraw_all_arrows()
+	# Clear all visual connections and redraw them for remaining selected tiles
+	if use_particles:
+		
+		redraw_all_particles()
+	else:
+		clear_arrows()
+		redraw_all_arrows()
 
 func is_adjacent_to_last_selected(tile: HexTile) -> bool:
 	if selected_tiles.is_empty():
@@ -154,10 +171,10 @@ func is_adjacent_to_last_selected(tile: HexTile) -> bool:
 	
 	var last_tile = selected_tiles[-1]
 
-	print("last tile = ", tile)
-	print("tile neighbours = ", tile.neighbour_letters())
+	print("last tile = ", last_tile)
+	print("last tile neighbours = ", last_tile.neighbour_letters())
 	
-	return last_tile.neighbours.find(tile) > 0
+	return last_tile.neighbours.find(tile) >= 0
 
 func recalculate_word():
 	current_word = ""
@@ -165,9 +182,7 @@ func recalculate_word():
 		current_word += tile.letter
 		
 func update_word_display():
-	var word_label = $UI/WordDisplay
-	if word_label:
-		word_label.text = current_word
+	%WordDisplay.text = current_word
 
 func clear_selection():
 	for tile in selected_tiles:
@@ -218,3 +233,91 @@ func clear_arrows():
 func redraw_all_arrows():
 	for i in range(1, selected_tiles.size()):
 		draw_arrow(selected_tiles[i-1], selected_tiles[i])
+
+# Particle System Functions
+func create_particle_stream(from_tile: HexTile, to_tile: HexTile):
+	var particles = CPUParticles2D.new()
+	particles.position = from_tile.position
+	
+	# Calculate direction and distance
+	var direction = (to_tile.position - from_tile.position).normalized()
+	var distance = from_tile.position.distance_to(to_tile.position) - 20
+	
+	# Basic particle setup
+	particles.emitting = true
+	particles.visible = true
+	particles.amount = 10
+	particles.lifetime = 1.0  # Longer lifetime for visibility
+	particles.explosiveness = 0.0  # Continuous emission
+	particles.fixed_fps = 60.0
+	
+	# Gold/yellow gradient colors
+	particles.color = Color.GOLD
+	particles.color_ramp = Gradient.new()
+	particles.color_ramp.add_point(0.0, Color.YELLOW)
+	particles.color_ramp.add_point(0.5, Color.GOLD)
+	particles.color_ramp.add_point(1.0, Color.ORANGE)
+	
+	# Energy stream visual properties
+	particles.direction = Vector2(1, 0)  # Will be rotated
+	particles.spread = 2.0  # Slightly wider stream for visibility
+	particles.initial_velocity_min = distance / particles.lifetime * 0.8
+	particles.initial_velocity_max = distance / particles.lifetime * 1.2
+	
+	# Particle size and shape
+	particles.scale_amount_min = 3.0
+	particles.scale_amount_max = 4.0
+	#particles.scale_amount_random = 0.5
+	
+	# Gravity and physics
+	particles.gravity = Vector2.ZERO
+	#particles.damping = 0.0
+	#particles.angular_velocity = 0.0
+	#particles.angular_velocity_random = 0.0
+	
+	# Rotate particles to face the direction
+	particles.rotation = direction.angle()
+	
+	# Add to canvas and tracking array
+	arrows_canvas.add_child(particles)
+	particle_streams.append(particles)
+	
+	# Start emission and auto-cleanup
+	particles.restart()
+	
+	# Auto-cleanup after particles finish
+	var cleanup_timer = Timer.new()
+	cleanup_timer.wait_time = particles.lifetime + 1.0
+	cleanup_timer.one_shot = true
+	cleanup_timer.timeout.connect(func(): 
+		particles.emitting = false
+		particles.queue_free()
+		particle_streams.erase(particles)
+	)
+	add_child(cleanup_timer)
+	#cleanup_timer.start()
+
+func clear_particles():
+	for stream in particle_streams:
+		stream.emitting = false
+		stream.queue_free()
+	particle_streams.clear()
+	
+	# Also clear any remaining Line2D arrows
+	for child in arrows_canvas.get_children():
+		if child is Line2D:
+			child.queue_free()
+
+func redraw_all_particles():
+	for i in range(1, selected_tiles.size()):
+		create_particle_stream(selected_tiles[i-1], selected_tiles[i])
+
+# Fallback toggle function (can be called from UI or debug)
+func set_use_particles(enabled: bool):
+	use_particles = enabled
+	if not enabled:
+		clear_particles()
+		redraw_all_arrows()
+	else:
+		clear_arrows()
+		redraw_all_particles()

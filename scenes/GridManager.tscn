@@ -4,6 +4,3 @@
 
 [node name="GridManager" type="Node2D" unique_id=895251005]
 script = ExtResource("1_d8r4r")
-grid_width = null
-grid_height = null
-hex_size = null
