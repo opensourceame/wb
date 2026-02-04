@@ -14,6 +14,7 @@ var normal_color:   Color = Color.LIGHT_GOLDENROD
 var outline_color:  Color = Color.ORANGE
 var selected_color: Color = Color.DARK_GREEN
 var hover_color:    Color = Color.DARK_GOLDENROD
+var validation_color: Color = Color.WHITE  # NEW: Dynamic outline color
 
 func _ready():
 	letter = get_random_letter()
@@ -60,9 +61,12 @@ func draw_hexagon(center: Vector2, radius: float, color: Color):
 		points.append(Vector2(x, y))
 	
 	draw_colored_polygon(points, color, points)
+	
+	# Use validation color if selected, otherwise normal outline color
+	var current_outline = validation_color if is_selected else outline_color
 	var outline_points = points.duplicate()
 	outline_points.append(points[0])  # Close the loop
-	draw_polyline(outline_points, outline_color, 3.0)
+	draw_polyline(outline_points, current_outline, 3.0)
 
 func draw_letter():
 	var font = ThemeDB.fallback_font
@@ -75,6 +79,11 @@ func draw_letter():
 
 func set_selected(selected: bool):
 	is_selected = selected
+	queue_redraw()
+
+# NEW: Set validation color for outline feedback
+func set_validation_color(color: Color):
+	validation_color = color
 	queue_redraw()
 
 func _on_area_2d_input_event(viewport: Node, event: InputEvent, shape_idx: int):

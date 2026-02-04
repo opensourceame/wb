@@ -4,6 +4,9 @@ class_name GameManager
 signal score_changed(new_score: int)
 signal word_submitted(word: String, points: int)
 signal game_time_updated(time: int)
+signal prefix_validation_changed(is_valid: bool, current_word: String)
+signal word_building_started()
+signal word_building_ended(word: String)
 
 var score: int = 0
 var words_found: Array[String] = []
@@ -29,6 +32,7 @@ func _on_timer_timeout():
 		game_time_updated.emit(game_time)
 
 func submit_word(word: String):
+	printerr("GAME: submit word ", word)
 	if not is_game_active:
 		return
 	
@@ -37,8 +41,6 @@ func submit_word(word: String):
 	if word.length() < 3:
 		return
 	
-	if words_found.has(word):
-		return
 	
 	if word_checker.is_valid_word(word):
 		var points = word_checker.get_word_score(word)
@@ -88,3 +90,13 @@ func get_time_string() -> String:
 	var minutes = game_time / 60
 	var seconds = game_time % 60
 	return "%02d:%02d" % [minutes, seconds]
+
+# NEW: Real-time validation methods for GridManager
+func on_prefix_validation_changed(is_valid: bool, current_word: String):
+	prefix_validation_changed.emit(is_valid, current_word)
+
+func on_word_building_started():
+	word_building_started.emit()
+
+func on_word_building_ended(word: String):
+	word_building_ended.emit(word)

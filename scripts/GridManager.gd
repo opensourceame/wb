@@ -1,13 +1,22 @@
 extends Node2D
 class_name GridManager
 
+# NEW: Signals for real-time validation
+signal word_building_started()
+signal word_building_ended(word: String)
+
 @export var grid_width:  int = 2
 @export var grid_height: int = 2
 @export var hex_size: float = 48.0
 @export var tile_scene: PackedScene
 
+@onready var game_manager = get_tree().current_scene.get_node('GameManager')
 @onready var tiles_canvas = $Tiles
 @onready var arrows_canvas = $Arrows
+
+# Access to game systems
+#var game_manager: GameManager
+var word_checker: WordChecker
 
 var grid: Dictionary = {}
 var selected_tiles: Array[HexTile] = []
@@ -20,6 +29,12 @@ var particle_streams: Array[CPUParticles2D] = []
 func _ready():
 	if tile_scene == null:
 		tile_scene = preload("res://scenes/HexTile.tscn")
+	
+	# Get references to game systems
+	game_manager = get_node_or_null("../GameManager")
+	if game_manager:
+		word_checker = game_manager.word_checker
+	
 	create_hex_grid()
 
 func create_hex_grid():
@@ -135,6 +150,16 @@ func select_tile(tile: HexTile):
 	tile.set_selected(true)
 	current_word += tile.letter
 	recalculate_word()
+	
+	# NEW: Real-time prefix validation
+	update_prefix_validation()
+	
+	# Emit signals for word building tracking
+	if selected_tiles.size() == 1:
+		word_building_started.emit()
+	if game_manager:
+		game_manager.on_word_building_started()
+	
 	update_word_display()
 	
 	# Create visual connection from previous tile to current tile
@@ -155,6 +180,10 @@ func deselect_tile(tile: HexTile):
 		particle_streams[-1].queue_free()
 	tile.set_selected(false)
 	recalculate_word()
+	
+	# NEW: Update validation after deselecting
+	update_prefix_validation()
+	
 	update_word_display()
 	
 	# Clear all visual connections and redraw them for remaining selected tiles
@@ -184,6 +213,39 @@ func recalculate_word():
 func update_word_display():
 	%WordDisplay.text = current_word
 
+# NEW: Real-time prefix validation
+func update_prefix_validation():
+	if not word_checker:
+		return
+		
+	# Check if current word is a valid prefix
+	var is_valid_prefix = word_checker.is_valid_prefix(current_word)
+	
+
+	
+	# Update visual feedback for tiles
+	update_tile_validation_feedback(is_valid_prefix)
+	
+	# Update word display color
+	update_word_display_color(is_valid_prefix)
+	
+	# Emit signals for real-time validation feedback
+	if game_manager:
+		game_manager.on_prefix_validation_changed(is_valid_prefix, current_word)
+
+func update_tile_validation_feedback(is_valid_prefix: bool):
+	# Update the color of selected tiles based on prefix validity
+	var feedback_color = Color.WHITE if is_valid_prefix else Color.RED
+	
+	for tile in selected_tiles:
+		# Only update the outline/highlight, not the base tile color
+		tile.set_validation_color(feedback_color)
+
+func update_word_display_color(is_valid_prefix: bool):
+	if %WordDisplay:
+		var display_color = Color.WHITE if is_valid_prefix else Color.RED
+		%WordDisplay.modulate = display_color
+
 func clear_selection():
 	for tile in selected_tiles:
 		tile.set_selected(false)
@@ -199,11 +261,15 @@ func _input(event):
 		clear_selection()
 
 func submit_word():
-	if current_word.length() >= 3:
-		var game_manager = get_node_or_null("../GameManager")
-		if game_manager:
-			game_manager.submit_word(current_word)
-		clear_selection()
+	if current_word.length() < 3:
+		return 
+
+	game_manager.submit_word(current_word)
+		
+	# Emit word building ended signal
+	game_manager.on_word_building_ended(current_word)
+	
+	clear_selection()
 
 func draw_arrow(from_tile: HexTile, to_tile: HexTile):
 	var arrow = Line2D.new()
