@@ -9,13 +9,13 @@ var score: int = 0
 var words_found: Array[String] = []
 var game_time: int = 0
 var is_game_active: bool = true
-var word_validator: WordValidator
+var word_checker: WordChecker
 
 @onready var grid_manager: GridManager = get_tree().current_scene.get_node("GridManager")
 
 func _ready():
-	word_validator = WordValidator.new()
-	add_child(word_validator)
+	word_checker = WordChecker.new()
+	add_child(word_checker)
 	
 	var timer = Timer.new()
 	add_child(timer)
@@ -40,8 +40,8 @@ func submit_word(word: String):
 	if words_found.has(word):
 		return
 	
-	if word_validator.is_valid_word(word):
-		var points = word_validator.get_word_score(word)
+	if word_checker.is_valid_word(word):
+		var points = word_checker.get_word_score(word)
 		add_score(points)
 		words_found.append(word)
 		word_submitted.emit(word, points)
