@@ -6,6 +6,9 @@ class_name GridManager
 @export var hex_size: float = 48.0
 @export var tile_scene: PackedScene
 
+@onready var tiles_canvas = $Tiles
+@onready var arrows_canvas = $Arrows
+
 var grid: Dictionary = {}
 var selected_tiles: Array[HexTile] = []
 var current_word: String = ""
@@ -28,7 +31,7 @@ func create_hex_grid():
 func create_hex_tile(q: int, r: int):
 	var tile = tile_scene.instantiate()
 	tile.hex_radius = hex_size
-	add_child(tile)
+	tiles_canvas.add_child(tile)
 	
 	var pos = hex_to_pixel(q, r)
 	tile.position = pos
@@ -82,19 +85,31 @@ func select_tile(tile: HexTile):
 		selected_tiles.append(tile)
 		tile.set_selected(true)
 		current_word += tile.letter
+		recalculate_word()
 		update_word_display()
+		
+		# Draw arrow from previous tile to current tile
+		if selected_tiles.size() > 1:
+			var previous_tile = selected_tiles[-2]
+			draw_arrow(previous_tile, tile)
 
 func deselect_tile(tile: HexTile):
 	selected_tiles.erase(tile)
 	tile.set_selected(false)
 	recalculate_word()
 	update_word_display()
+	
+	# Clear all arrows and redraw them for remaining selected tiles
+	clear_arrows()
+	redraw_all_arrows()
 
 func is_adjacent_to_last_selected(tile: HexTile) -> bool:
 	if selected_tiles.is_empty():
 		return true
 	
 	var last_tile = selected_tiles[-1]
+	
+
 	var dq = tile.grid_q - last_tile.grid_q
 	var dr = tile.grid_r - last_tile.grid_r
 	
@@ -113,7 +128,7 @@ func recalculate_word():
 	current_word = ""
 	for tile in selected_tiles:
 		current_word += tile.letter
-
+		
 func update_word_display():
 	var word_label = $UI/WordDisplay
 	if word_label:
@@ -125,6 +140,7 @@ func clear_selection():
 	selected_tiles.clear()
 	current_word = ""
 	update_word_display()
+	clear_arrows()
 
 func _input(event):
 	if event.is_action_pressed("ui_accept"):
@@ -138,3 +154,32 @@ func submit_word():
 		if game_manager:
 			game_manager.submit_word(current_word)
 		clear_selection()
+
+func draw_arrow(from_tile: HexTile, to_tile: HexTile):
+	var arrow = Line2D.new()
+	arrow.width = 5.0
+	arrow.default_color = Color.WHITE
+	arrow.add_point(from_tile.position)
+	arrow.add_point(to_tile.position)
+	
+	# Add arrowhead
+	var direction = (to_tile.position - from_tile.position).normalized()
+	var arrowhead_length = 15.0
+	var arrowhead_angle = deg_to_rad(30)
+	
+	var head_point1 = to_tile.position - direction.rotated(arrowhead_angle) * arrowhead_length
+	var head_point2 = to_tile.position - direction.rotated(-arrowhead_angle) * arrowhead_length
+	
+	arrow.add_point(head_point1)
+	arrow.add_point(to_tile.position)
+	arrow.add_point(head_point2)
+	
+	arrows_canvas.add_child(arrow)
+
+func clear_arrows():
+	for child in arrows_canvas.get_children():
+		child.queue_free()
+
+func redraw_all_arrows():
+	for i in range(1, selected_tiles.size()):
+		draw_arrow(selected_tiles[i-1], selected_tiles[i])

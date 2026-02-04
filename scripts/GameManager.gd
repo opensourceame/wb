@@ -11,7 +11,7 @@ var game_time: int = 0
 var is_game_active: bool = true
 var word_validator: WordValidator
 
-@onready var grid_manager: GridManager = $"../GridManager"
+@onready var grid_manager: GridManager = get_tree().current_scene.get_node("GridManager")
 
 func _ready():
 	word_validator = WordValidator.new()
