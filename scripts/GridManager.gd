@@ -15,8 +15,13 @@ signal word_building_ended(word: String)
 @onready var arrows_canvas = $Arrows
 
 # Access to game systems
-#var game_manager: GameManager
 var word_checker: WordChecker
+
+# Touch gesture tracking
+var touch_start_time: float = 0
+var touch_start_pos: Vector2
+var is_long_press: bool = false
+var long_press_timer: Timer
 
 var grid: Dictionary = {}
 var selected_tiles: Array[HexTile] = []
@@ -30,9 +35,14 @@ func _ready():
 	if tile_scene == null:
 		tile_scene = preload("res://scenes/HexTile.tscn")
 	
-	# Get references to game systems
-	game_manager = get_node_or_null("../GameManager")
 	word_checker = game_manager.word_checker
+	
+	# Setup long press timer for touch submit
+	long_press_timer = Timer.new()
+	add_child(long_press_timer)
+	long_press_timer.wait_time = 0.5  # 500ms for long press
+	long_press_timer.one_shot = true
+	long_press_timer.timeout.connect(_on_long_press)
 	
 	create_hex_grid()
 
@@ -176,7 +186,9 @@ func deselect_tile(tile: HexTile):
 
 	selected_tiles.erase(tile)
 	if not particle_streams.is_empty():
-		particle_streams[-1].call_deferred("queue_free")
+		if particle_streams[-1]:
+			particle_streams[-1].call_deferred("queue_free")
+			
 	tile.set_idle()
 	recalculate_word()
 	
@@ -211,7 +223,7 @@ func recalculate_word():
 func update_word_display():
 	%WordDisplay.text = current_word
 	
-	if game_manager.word_checker.is_valid_word(current_word):
+	if !game_manager.words_found.has(current_word) and game_manager.word_checker.is_valid_word(current_word):
 		highlight_valid_word()
 		
 func highlight_valid_word():
@@ -258,10 +270,36 @@ func clear_selection():
 	clear_arrows()
 
 func _input(event):
+	# Handle keyboard/gamepad input
 	if event.is_action_pressed("ui_accept"):
 		submit_word()
 	elif event.is_action_pressed("ui_cancel"):
 		clear_selection()
+	
+	# Handle touch gestures
+	elif event is InputEventScreenTouch and event.pressed:
+		# Start tracking touch for potential long press
+		touch_start_time = Time.get_time_dict_from_system()["second"] + Time.get_time_dict_from_system()["microsecond"] / 1000000.0
+		touch_start_pos = event.position
+		is_long_press = false
+		long_press_timer.start()
+		
+	elif event is InputEventScreenTouch and not event.pressed:
+		# Touch released
+		if is_long_press and current_word.length() >= 3:
+			# Long press - submit word
+			submit_word()
+		else:
+			# Quick tap outside tiles - clear selection
+			var touched_tile = get_tile_at_position(event.position)
+			if not touched_tile:
+				clear_selection()
+		
+		long_press_timer.stop()
+	
+	elif event is InputEventScreenDrag:
+		# Touch drag is handled by individual tiles
+		pass
 
 func submit_word():
 	if current_word.length() < 3:
@@ -382,6 +420,23 @@ func redraw_all_particles():
 		create_particle_stream(selected_tiles[i-1], selected_tiles[i])
 
 # Fallback toggle function (can be called from UI or debug)
+func _on_long_press():
+	is_long_press = true
+	print("Long press detected - word can be submitted")
+
+func get_tile_at_position(screen_pos: Vector2) -> HexTile:
+	# Convert screen position to world space
+	var world_pos = get_global_transform().inverse() * screen_pos
+	
+	# Check each tile to see if position is within hex
+	for tile in tiles_canvas.get_children():
+		var local_pos = tile.to_local(world_pos)
+		var distance = local_pos.length()
+		if distance <= tile.hex_radius:
+			return tile
+	
+	return null
+
 func set_use_particles(enabled: bool):
 	use_particles = enabled
 	if not enabled:

@@ -39,11 +39,13 @@ func submit_word(word: String):
 	word = word.strip_edges().to_upper()
 	
 	if word.length() < 3:
-		return
+		return invalid_word_submitted()
 	
-	
+	if words_found.has(word):
+		return invalid_word_submitted()
+		
 	if not word_checker.is_valid_word(word):
-		return false
+		return invalid_word_submitted()
 		
 	var points = word_checker.get_word_score(word)
 	add_score(points)
@@ -56,6 +58,9 @@ func submit_word(word: String):
 	
 	return true
 
+func invalid_word_submitted():
+	$"../Sounds/ShortBeep".play()
+	
 func add_score(points: int):
 	score += points
 	score_changed.emit(score)
@@ -79,7 +84,7 @@ func pause_game():
 
 func resume_game():
 	is_game_active = true
-
+	
 func get_game_stats() -> Dictionary:
 	return {
 		"score": score,

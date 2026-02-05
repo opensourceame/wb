@@ -4,6 +4,7 @@
 [ext_resource type="PackedScene" uid="uid://dev1vlrye5a0i" path="res://scenes/GridManager.tscn" id="2_rarhs"]
 [ext_resource type="Script" uid="uid://bewyf1ek3euuf" path="res://scripts/UIManager.gd" id="3_ui"]
 [ext_resource type="AudioStream" uid="uid://dqhsrebau2rjr" path="res://sounds/kaching.mp3" id="4_rarhs"]
+[ext_resource type="AudioStream" uid="uid://fh5ylhcf6t2g" path="res://sounds/short-beep.mp3" id="5_vcsgt"]
 
 [sub_resource type="SystemFont" id="SystemFont_rarhs"]
 
@@ -69,7 +70,7 @@ offset_top = -80.0
 offset_right = 120.0
 offset_bottom = -40.0
 grow_vertical = 0
-text = "0"
+text = "Score: 0"
 vertical_alignment = 1
 
 [node name="TimeDisplay" type="Label" parent="UI" unique_id=269649100]
@@ -132,6 +133,9 @@ text = "Clear"
 
 [node name="Kaching" type="AudioStreamPlayer" parent="Sounds" unique_id=319395583]
 stream = ExtResource("4_rarhs")
+
+[node name="ShortBeep" type="AudioStreamPlayer" parent="Sounds" unique_id=1688827695]
+stream = ExtResource("5_vcsgt")
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=324529156]
 position = Vector2(246, 344)

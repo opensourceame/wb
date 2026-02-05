@@ -33,7 +33,7 @@ func _on_clear_pressed():
 
 func _on_score_changed(new_score: int):
 	if score_label:
-		score_label.text = str(new_score)
+		score_label.text = "Score: " + str(new_score)
 
 func _on_word_submitted(word: String, points: int):
 	_show_word_feedback(word, points, true)
