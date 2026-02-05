@@ -5,6 +5,7 @@ class_name UIManager
 @onready var score_label: Label = $"../UI/Score"
 @onready var time_label: Label = $"../UI/TimeDisplay"
 @onready var submit_button: Button = $"../UI/SubmitButton"
+@onready var shuffle_button: Button = $"../UI/ShuffleButton"
 @onready var clear_button: Button = $"../UI/ClearButton"
 @onready var words_found_label: Label = $"../UI/WordsFound"
 
@@ -17,6 +18,8 @@ func _ready():
 	
 	if submit_button:
 		submit_button.pressed.connect(_on_submit_pressed)
+	if shuffle_button:
+		shuffle_button.pressed.connect(_on_shuffle_pressed)
 	if clear_button:
 		clear_button.pressed.connect(_on_clear_pressed)
 	
@@ -27,6 +30,9 @@ func _ready():
 
 func _on_submit_pressed():
 	grid_manager.submit_word()
+
+func _on_shuffle_pressed():
+	grid_manager.shuffle_tiles()
 
 func _on_clear_pressed():
 	grid_manager.clear_selection()

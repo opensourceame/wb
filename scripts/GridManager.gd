@@ -57,6 +57,28 @@ func create_hex_grid():
 	print_grid()
 	
 	
+func shuffle_tiles():
+	# Collect all letters from current tiles
+	var all_letters = []
+	for q in range(grid_width):
+		for r in range(grid_height):
+			all_letters.append(columns[q][r].letter)
+	
+	# Shuffle the letters array
+	all_letters.shuffle()
+	
+	# Reassign shuffled letters to tiles
+	var letter_index = 0
+	for q in range(grid_width):
+		for r in range(grid_height):
+			columns[q][r].set_letter(all_letters[letter_index])
+			letter_index += 1
+	
+	# Clear any current selection
+	clear_selection()
+	
+	print("Tiles shuffled!")
+
 func print_grid():
 	var t = ""
 	for x in range(grid_width):

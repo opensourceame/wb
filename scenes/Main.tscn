@@ -20,8 +20,8 @@ shadow_color = Color(0.34781712, 0.3478169, 0.34781682, 0.67058825)
 
 [node name="GridManager" parent="." unique_id=895251005 instance=ExtResource("2_rarhs")]
 position = Vector2(62, 164)
-grid_width = 3
-grid_height = 3
+grid_width = 5
+grid_height = 5
 hex_size = 64.0
 
 [node name="Tiles" type="CanvasLayer" parent="GridManager" unique_id=305873846]
@@ -107,13 +107,27 @@ anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
-offset_left = 281.0
-offset_top = -199.0
-offset_right = 381.0
-offset_bottom = -159.0
+offset_left = 61.0
+offset_top = -273.0
+offset_right = 177.0
+offset_bottom = -222.0
 grow_horizontal = 2
 grow_vertical = 0
 text = "Submit"
+
+[node name="ShuffleButton" type="Button" parent="UI" unique_id=1220611953]
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -223.0
+offset_top = -281.0
+offset_right = -101.0
+offset_bottom = -223.0
+grow_horizontal = 2
+grow_vertical = 0
+text = "Shuffle"
 
 [node name="ClearButton" type="Button" parent="UI" unique_id=1220611952]
 anchors_preset = 7
@@ -121,10 +135,10 @@ anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
-offset_left = 281.0
-offset_top = -239.0
-offset_right = 381.0
-offset_bottom = -199.0
+offset_left = -74.0
+offset_top = -277.0
+offset_right = 46.0
+offset_bottom = -222.0
 grow_horizontal = 2
 grow_vertical = 0
 text = "Clear"
