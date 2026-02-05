@@ -9,6 +9,7 @@ const COLORS = [
 	Color.RED
 ]
 signal tile_selected(tile: HexTile)
+signal drop_animation_completed(tile: HexTile)
 
 @export var letter: String = "A"
 @export var grid_q: int = 0
@@ -25,6 +26,13 @@ var current_state = State.IDLE
 			##_update_polygon_color()
 var touch_scale: float = 1.0  # NEW: Touch animation scale
 var hex_points : PackedVector2Array
+
+# Tile dropping animation properties
+var is_dropping: bool = false
+var drop_start_position: Vector2
+var drop_target_position: Vector2
+var drop_progress: float = 0.0
+var drop_duration: float = 5.0  # 5 seconds to drop one tile height
 
 # Node references
 var filled_polygon: Polygon2D
@@ -120,6 +128,20 @@ func _physics_process(delta):
 	var target_color = COLORS[current_state]
 	if not target_color == filled_polygon.color:
 		filled_polygon.color = filled_polygon.color.lerp(target_color, delta * 10.0)
+	
+	# Handle tile dropping animation
+	if is_dropping:
+		drop_progress += delta / drop_duration
+		if drop_progress >= 1.0:
+			drop_progress = 1.0
+			is_dropping = false
+			position = drop_target_position
+			drop_animation_completed.emit(self)
+		else:
+			# Smooth easing function (ease-in-out)
+			var t = drop_progress
+			var eased_t = t * t * (3.0 - 2.0 * t)  # Smoothstep
+			position = drop_start_position.lerp(drop_target_position, eased_t)
 
 func _update_polygon_color():
 	# Immediate color update for instant visual feedback
@@ -225,3 +247,15 @@ func _is_point_inside_hex(point: Vector2) -> bool:
 
 func get_grid_position() -> Vector2:
 	return Vector2(grid_q, grid_r)
+
+func start_drop_animation():
+	# Calculate one tile height downward
+	var hex_height = hex_radius * sqrt(3.0)
+	drop_start_position = position
+	drop_target_position = position + Vector2(0, hex_height)
+	drop_progress = 0.0
+	is_dropping = true
+
+func stop_drop_animation():
+	is_dropping = false
+	drop_progress = 0.0

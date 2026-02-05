@@ -98,6 +98,16 @@ func get_time_string() -> String:
 	var seconds = game_time % 60
 	return "%02d:%02d" % [minutes, seconds]
 
+func _input(event):
+	# Test tile dropping animation with 'D' key
+	if event is InputEventKey and event.pressed:
+		if event.keycode == KEY_D:
+			print("Starting tile drop animation...")
+			grid_manager.start_tile_drop_animation()
+		elif event.keycode == KEY_S:
+			print("Stopping tile drop animation...")
+			grid_manager.stop_tile_drop_animation()
+
 # NEW: Real-time validation methods for GridManager
 func on_prefix_validation_changed(is_valid: bool, current_word: String):
 	prefix_validation_changed.emit(is_valid, current_word)

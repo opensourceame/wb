@@ -31,6 +31,10 @@ var rows    = []
 var use_particles: bool = true
 var particle_streams: Array[CPUParticles2D] = []
 
+# Tile dropping and row management
+var tiles_dropping: int = 0
+var is_row_cycle_active: bool = false
+
 func _ready():
 	if tile_scene == null:
 		tile_scene = preload("res://scenes/HexTile.tscn")
@@ -133,6 +137,7 @@ func create_hex_tile(q: int, r: int):
 	
 	grid[Vector2(q, r)] = tile
 	tile.tile_selected.connect(_on_tile_selected)
+	tile.drop_animation_completed.connect(_on_tile_drop_completed)
 	
 	return tile
 
@@ -466,3 +471,153 @@ func set_use_particles(enabled: bool):
 	else:
 		clear_arrows()
 		redraw_all_particles()
+
+func start_tile_drop_animation():
+	if is_row_cycle_active:
+		print("Row cycle already in progress, skipping...")
+		return
+		
+	is_row_cycle_active = true
+	tiles_dropping = 0
+	
+	# Start drop animation on all tiles in the grid
+	for q in range(grid_width):
+		for r in range(grid_height):
+			if columns[q] and columns[q][r]:
+				columns[q][r].start_drop_animation()
+				tiles_dropping += 1
+	
+	print("Started drop animation on ", tiles_dropping, " tiles")
+
+func stop_tile_drop_animation():
+	# Stop drop animation on all tiles in the grid
+	for q in range(grid_width):
+		for r in range(grid_height):
+			if columns[q] and columns[q][r]:
+				columns[q][r].stop_drop_animation()
+	
+	is_row_cycle_active = false
+	tiles_dropping = 0
+
+func _on_tile_drop_completed(tile: HexTile):
+	tiles_dropping -= 1
+	
+	if tiles_dropping == 0 and is_row_cycle_active:
+		print("All tiles completed dropping - cycling rows...")
+		_cycle_rows()
+
+func _cycle_rows():
+	print("🔄 Starting row cycle process...")
+	
+	# Remove bottom row and create new top row
+	var bottom_row_tiles = []
+	var bottom_row_letters = []
+	
+	# Collect bottom row tiles (row = grid_height - 1)
+	for q in range(grid_width):
+		if columns[q] and columns[q][grid_height - 1]:
+			bottom_row_tiles.append(columns[q][grid_height - 1])
+			bottom_row_letters.append(columns[q][grid_height - 1].letter)
+	
+	print("🗑️ Removing bottom row with letters: ", bottom_row_letters)
+	
+	# Remove bottom row tiles
+	for tile in bottom_row_tiles:
+		tile.queue_free()
+	
+	# Shift all tiles down by one row
+	print("⬇️ Shifting tiles down by one row...")
+	for r in range(grid_height - 2, -1, -1):  # Start from second-to-last row, go up
+		for q in range(grid_width):
+			if columns[q] and columns[q][r]:
+				var tile = columns[q][r]
+				tile.grid_r = r + 1  # Update grid coordinate
+				
+				# Update grid dictionary reference
+				grid.erase(Vector2(q, r))
+				grid[Vector2(q, r + 1)] = tile
+				
+				# Update column array
+				columns[q][r + 1] = tile
+	
+	# Create new top row (row = 0)
+	print("⬆️ Creating new top row...")
+	var new_row_letters = []
+	for q in range(grid_width):
+		var new_tile = create_hex_tile(q, 0)
+		columns[q][0] = new_tile
+		grid[Vector2(q, 0)] = new_tile
+		new_row_letters.append(new_tile.letter)
+	
+	print("✨ New top row letters: ", new_row_letters)
+	
+	# Update all tile positions to match new grid coordinates
+	print("📍 Updating tile positions...")
+	_update_all_tile_positions()
+	
+	# Rebuild neighbour connections
+	print("🔗 Rebuilding neighbour connections...")
+	_rebuild_neighbour_connections()
+	
+	# Clear any current selection since tiles changed
+	clear_selection()
+	
+	is_row_cycle_active = false
+	print("✅ Row cycle completed successfully!")
+
+func _update_all_tile_positions():
+	# Update visual position of all tiles to match their grid coordinates
+	for q in range(grid_width):
+		for r in range(grid_height):
+			if columns[q] and columns[q][r]:
+				var tile = columns[q][r]
+				var new_pos = hex_to_pixel(q, r)
+				tile.position = new_pos
+
+func _rebuild_neighbour_connections():
+	# Clear all existing neighbours
+	for q in range(grid_width):
+		for r in range(grid_height):
+			if columns[q] and columns[q][r]:
+				columns[q][r].neighbours.clear()
+	
+	# Rebuild neighbour connections based on new positions
+	_rebuild_neighbour_connections_helper()
+
+func _rebuild_neighbour_connections_helper():
+	# Use the existing print_grid logic to rebuild neighbours
+	for x in range(grid_width):
+		var dir
+		if x % 2:
+			dir = -1
+		else:
+			dir = 1
+			
+		for y in range(grid_height):
+			# Skip if this position doesn't have a tile
+			if not columns[x] or y >= columns[x].size() or not columns[x][y]:
+				continue
+				
+			var tile = columns[x][y]
+			
+			# if there is a tile above, add it as a neighbour
+			if y > 0 and columns[x] and y < columns[x].size() and columns[x][y-1]:
+				tile.add_neighbour(columns[x][y-1])
+			# if there is a tile below, add it as a neighbour
+			if (y+1) < grid_height and columns[x] and (y+1) < columns[x].size() and columns[x][y+1]:
+				tile.add_neighbour(columns[x][y+1])
+			
+			if x > 0 and columns[x-1] and y < columns[x-1].size() and columns[x-1][y]:
+				tile.add_neighbour(columns[x-1][y])
+
+			if grid_width > x+1 and columns[x+1] and y < columns[x+1].size() and columns[x+1][y]:
+				tile.add_neighbour(columns[x+1][y])
+
+			if grid_height > y+dir and x > 0 and columns[x-1] and (y+dir) < columns[x-1].size() and columns[x-1][y+dir]:
+				tile.add_neighbour(columns[x-1][y+dir])
+
+			if (y+dir) >= 0 and (y+dir) < grid_height \
+				and (x+1) < grid_width \
+				and columns[x+1] and (y+dir) < columns[x+1].size() \
+				and columns[x+1][y+dir]:
+					tile.add_neighbour(columns[x+1][y+dir])
