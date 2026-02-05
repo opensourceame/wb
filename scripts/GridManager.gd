@@ -33,7 +33,10 @@ var particle_streams: Array[CPUParticles2D] = []
 
 # Tile dropping and row management
 var tiles_dropping: int = 0
-var is_row_cycle_active: bool = false
+var is_row_cycle_active:    bool = false
+var continuous_cycle_mode:  bool = true
+var continuous_cycle_delay: float = 2.0  # Delay between cycles in continuous mode
+var continuous_cycle_timer: Timer
 
 func _ready():
 	if tile_scene == null:
@@ -47,6 +50,13 @@ func _ready():
 	long_press_timer.wait_time = 0.5  # 500ms for long press
 	long_press_timer.one_shot = true
 	long_press_timer.timeout.connect(_on_long_press)
+	
+	# Setup continuous cycle timer
+	continuous_cycle_timer = Timer.new()
+	add_child(continuous_cycle_timer)
+	continuous_cycle_timer.wait_time = continuous_cycle_delay
+	continuous_cycle_timer.one_shot = true
+	continuous_cycle_timer.timeout.connect(_on_continuous_cycle_delay)
 	
 	create_hex_grid()
 
@@ -472,13 +482,24 @@ func set_use_particles(enabled: bool):
 		clear_arrows()
 		redraw_all_particles()
 
-func start_tile_drop_animation():
-	if is_row_cycle_active:
+func _on_continuous_cycle_delay():
+	if continuous_cycle_mode:
+		print("🔄 Starting next continuous cycle...")
+		start_tile_drop_animation(true)  # Continue continuous mode
+
+func start_tile_drop_animation(continuous: bool = false):
+	if is_row_cycle_active and not continuous:
 		print("Row cycle already in progress, skipping...")
 		return
-		
+	
+	continuous_cycle_mode = continuous
 	is_row_cycle_active = true
 	tiles_dropping = 0
+	
+	if continuous_cycle_mode:
+		print("🔄 Starting CONTINUOUS tile drop cycles...")
+	else:
+		print("🎬 Starting single tile drop animation...")
 	
 	# Start drop animation on all tiles in the grid
 	for q in range(grid_width):
@@ -487,7 +508,7 @@ func start_tile_drop_animation():
 				columns[q][r].start_drop_animation()
 				tiles_dropping += 1
 	
-	print("Started drop animation on ", tiles_dropping, " tiles")
+	print("→ Started drop animation on ", tiles_dropping, " tiles")
 
 func stop_tile_drop_animation():
 	# Stop drop animation on all tiles in the grid
@@ -496,8 +517,14 @@ func stop_tile_drop_animation():
 			if columns[q] and columns[q][r]:
 				columns[q][r].stop_drop_animation()
 	
+	# Stop continuous mode
+	continuous_cycle_mode = true
+	continuous_cycle_timer.stop()
+	
 	is_row_cycle_active = false
 	tiles_dropping = 0
+	
+	print("⏹ Stopped tile drop animation (continuous mode disabled)")
 
 func _on_tile_drop_completed(tile: HexTile):
 	tiles_dropping -= 1
@@ -563,7 +590,16 @@ func _cycle_rows():
 	clear_selection()
 	
 	is_row_cycle_active = false
+	
+	# If in continuous mode, start next cycle after delay
+	if continuous_cycle_mode:
+		print("⏱️ Waiting ", continuous_cycle_delay, " seconds before next cycle...")
+		continuous_cycle_timer.start()
+		continuous_cycle_timer.timeout.connect(start_tile_drop_animation)
+		start_tile_drop_animation()
+		
 	print("✅ Row cycle completed successfully!")
+	start_tile_drop_animation()
 
 func _update_all_tile_positions():
 	# Update visual position of all tiles to match their grid coordinates

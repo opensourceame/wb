@@ -6,15 +6,18 @@ extends Node
 func _ready():
 	print("=== Tile Drop & Row Cycle Test Ready ===")
 	print("Controls:")
-	print("  'D' - Start tile drop animation + row cycle")
-	print("  'S' - Stop tile drop animation")
-	print("  'T' - Test single drop without row cycle")
+	print("  'D' - Start CONTINUOUS tile drop cycles")
+	print("  'C' - Start SINGLE tile drop cycle")
+	print("  'S' - Stop all animations (disables continuous mode)")
+	print("  'T' - Test single tile drop without row cycle")
 	print("")
 	print("The system will:")
 	print("1. Drop all tiles down by one tile height (5 seconds)")
 	print("2. Remove bottom row")
 	print("3. Create new top row with random letters")
 	print("4. Update all tile positions and neighbour connections")
+	print("")
+	print("CONTINUOUS MODE: After each cycle, waits 2 seconds then starts next cycle")
 	print("")
 	
 	# Get reference to grid manager
@@ -34,19 +37,27 @@ func _input(event):
 		
 		match event.keycode:
 			KEY_D:
-				print("\n🎬 Starting tile drop animation + row cycle...")
-				grid_manager.start_tile_drop_animation()
-				print("→ Animation started on all tiles")
+				print("\n🔄 Starting CONTINUOUS tile drop cycles...")
+				grid_manager.start_tile_drop_animation(true)  # true = continuous mode
+				print("→ Continuous mode activated")
+				print("→ Each cycle: 5 seconds drop + 2 seconds delay")
+				print("→ Press 'S' to stop continuous mode")
+				
+			KEY_C:
+				print("\n🎬 Starting SINGLE tile drop cycle...")
+				grid_manager.start_tile_drop_animation(false)  # false = single cycle
+				print("→ Single cycle started")
 				print("→ Bottom row will be removed after 5 seconds")
 				print("→ New top row will be created")
 				
 			KEY_S:
-				print("\n⏹ Stopping tile drop animation...")
+				print("\n⏹ Stopping all animations...")
 				grid_manager.stop_tile_drop_animation()
-				print("→ Animation stopped on all tiles")
+				print("→ All animations stopped")
+				print("→ Continuous mode disabled")
 				
 			KEY_T:
-				print("\n🧪 Testing single drop without row cycle...")
+				print("\n🧪 Testing single tile drop without row cycle...")
 				# Test individual tile drop to verify animation works
 				if grid_manager.columns.size() > 0 and grid_manager.columns[0].size() > 0:
 					var test_tile = grid_manager.columns[0][0]
