@@ -17,7 +17,7 @@ signal tile_selected(tile: HexTile)
 
 var neighbours: Array = []
 var is_selected: bool = false
-var outline_color:    Color = Color.WHITE
+var outline_color:    Color = Color.DARK_ORANGE
 var current_state = State.IDLE
 	#set(value):
 		#if current_state != value:
@@ -28,7 +28,7 @@ var hex_points : PackedVector2Array
 
 # Node references
 var filled_polygon: Polygon2D
-var outline_polygon: Polygon2D
+var outline_line: Line2D
 var letter_label: Label
 
 func _ready():
@@ -55,14 +55,24 @@ func create_collision_polygon():
 	$CollisionArea.add_child(collision_poly)
 
 func create_outline_polygon():
-	pass
-	# create outline polygon
-	outline_polygon = Polygon2D.new()
-	outline_polygon.polygon = hex_points
-	outline_polygon.color = outline_color
-	outline_polygon.width = 3.0
-	outline_polygon.antialiased = true
-	add_child(outline_polygon)
+	# create outline using Line2D for proper polyline rendering
+	outline_line = Line2D.new()
+	
+	# Create closed loop by adding first point at the end
+	var outline_points = hex_points.duplicate()
+	outline_points.append(hex_points[0])
+	
+	outline_line.points = outline_points
+	outline_line.width = 3.0
+	outline_line.default_color = outline_color
+	outline_line.antialiased = true
+	outline_line.joint_mode = Line2D.LINE_JOINT_ROUND
+	#outline_line.cap_mode = Line2D.LINE_CAP_ROUND
+	add_child(outline_line)
+
+func set_validation_color(color: Color):
+	#validation_color = color
+	outline_line.default_color = color
 		
 func create_letter_label():
 	# create label for letter
