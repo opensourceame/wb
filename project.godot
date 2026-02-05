@@ -27,6 +27,8 @@ settings/console/print_fps=true
 
 window/size/viewport_width=800
 window/size/viewport_height=1024
+window/stretch/mode="viewport"
+window/handheld/orientation=1
 
 [input]
 
@@ -54,3 +56,11 @@ ui_down={
 , Object(InputEventJoypadButton,"resource_local_to_scene":false,"resource_name":"","device":-1,"button_index":12,"pressure":0.0,"pressed":false,"script":null)
 ]
 }
+
+[input_devices]
+
+pointing/emulate_mouse_from_touch=false
+
+[rendering]
+
+textures/vram_compression/import_etc2_astc=true

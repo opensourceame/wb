@@ -107,8 +107,7 @@ func create_hex_tile(q: int, r: int):
 	tile.position = pos
 	tile.grid_q = q
 	tile.grid_r = r
-	tile.letter = get_random_letter()
-	tile.name = tile.letter
+	tile.set_letter(get_random_letter())
 	
 	grid[Vector2(q, r)] = tile
 	tile.tile_selected.connect(_on_tile_selected)
