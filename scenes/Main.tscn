@@ -16,13 +16,26 @@ outline_size = 10
 outline_color = Color(0.019554144, 0.019554138, 0.019554136, 1)
 shadow_color = Color(0.34781712, 0.3478169, 0.34781682, 0.67058825)
 
+[sub_resource type="LabelSettings" id="LabelSettings_nxtc6"]
+font_size = 24
+
+[sub_resource type="SystemFont" id="SystemFont_vcsgt"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_c01mt"]
+font = SubResource("SystemFont_vcsgt")
+font_size = 48
+
+[sub_resource type="LabelSettings" id="LabelSettings_vcsgt"]
+font_size = 67
+
 [node name="Main" type="Node2D" unique_id=1302130063]
+metadata/_edit_lock_ = true
 
 [node name="GridManager" parent="." unique_id=895251005 instance=ExtResource("2_rarhs")]
-position = Vector2(62, 164)
 grid_width = 5
 grid_height = 5
 hex_size = 64.0
+metadata/_edit_lock_ = true
 
 [node name="Tiles" type="CanvasLayer" parent="GridManager" unique_id=305873846]
 follow_viewport_enabled = true
@@ -65,12 +78,13 @@ vertical_alignment = 1
 anchors_preset = 2
 anchor_top = 1.0
 anchor_bottom = 1.0
-offset_left = 20.0
-offset_top = -80.0
-offset_right = 120.0
-offset_bottom = -40.0
+offset_left = 640.0
+offset_top = -896.0
+offset_right = 740.0
+offset_bottom = -856.0
 grow_vertical = 0
 text = "Score: 0"
+label_settings = SubResource("LabelSettings_nxtc6")
 vertical_alignment = 1
 
 [node name="TimeDisplay" type="Label" parent="UI" unique_id=269649100]
@@ -79,13 +93,14 @@ anchor_left = 1.0
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -120.0
-offset_top = -80.0
-offset_right = -20.0
-offset_bottom = -40.0
+offset_left = -160.0
+offset_top = -1016.0
+offset_right = -37.0
+offset_bottom = -949.0
 grow_horizontal = 0
 grow_vertical = 0
 text = "00:00"
+label_settings = SubResource("LabelSettings_c01mt")
 horizontal_alignment = 2
 vertical_alignment = 1
 
@@ -93,12 +108,13 @@ vertical_alignment = 1
 anchors_preset = 2
 anchor_top = 1.0
 anchor_bottom = 1.0
-offset_left = 20.0
-offset_top = -120.0
-offset_right = 200.0
-offset_bottom = -80.0
+offset_left = 640.0
+offset_top = -936.0
+offset_right = 820.0
+offset_bottom = -896.0
 grow_vertical = 0
 text = "Words: 0"
+label_settings = SubResource("LabelSettings_nxtc6")
 vertical_alignment = 1
 
 [node name="SubmitButton" type="Button" parent="UI" unique_id=559092073]
@@ -107,13 +123,27 @@ anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
-offset_left = 61.0
-offset_top = -232.0
-offset_right = 177.0
-offset_bottom = -181.0
+offset_left = -16.0
+offset_top = -128.0
+offset_right = 100.0
+offset_bottom = -64.0
 grow_horizontal = 2
 grow_vertical = 0
 text = "Submit"
+
+[node name="RestartButton" type="Button" parent="UI" unique_id=41001926]
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = 144.0
+offset_top = -128.0
+offset_right = 280.0
+offset_bottom = -64.0
+grow_horizontal = 2
+grow_vertical = 0
+text = "↩️ Restart"
 
 [node name="ShuffleButton" type="Button" parent="UI" unique_id=1220611953]
 anchors_preset = 7
@@ -121,10 +151,10 @@ anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
-offset_left = -237.0
-offset_top = -238.0
-offset_right = -115.0
-offset_bottom = -180.0
+offset_left = -360.0
+offset_top = -128.0
+offset_right = -232.0
+offset_bottom = -64.0
 grow_horizontal = 2
 grow_vertical = 0
 text = "Shuffle"
@@ -135,13 +165,30 @@ anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
-offset_left = -87.0
-offset_top = -232.0
-offset_right = 33.0
-offset_bottom = -177.0
+offset_left = -184.0
+offset_top = -128.0
+offset_right = -64.0
+offset_bottom = -64.0
 grow_horizontal = 2
 grow_vertical = 0
 text = "Clear"
+
+[node name="WordFeedback" type="Node2D" parent="UI" unique_id=634489320]
+visible = false
+
+[node name="Polygon2D" type="Polygon2D" parent="UI/WordFeedback" unique_id=976529351]
+position = Vector2(56, 40)
+color = Color(0.5033745, 0.5033746, 0.5033746, 1)
+polygon = PackedVector2Array(-48, 272, 56, 232, 152, 272, 248, 232, 360, 208, 448, 272, 544, 272, 584, 352, 536, 448, 424, 440, 336, 376, 224, 424, 144, 392, 32, 400, -64, 368, -56, 280)
+
+[node name="FeedbackLabel" type="Label" parent="UI/WordFeedback" unique_id=477729317]
+unique_name_in_owner = true
+offset_left = 104.0
+offset_top = 320.0
+offset_right = 558.0
+offset_bottom = 448.0
+label_settings = SubResource("LabelSettings_vcsgt")
+horizontal_alignment = 1
 
 [node name="Sounds" type="Node" parent="." unique_id=948160424]
 
@@ -150,6 +197,3 @@ stream = ExtResource("4_rarhs")
 
 [node name="ShortBeep" type="AudioStreamPlayer" parent="Sounds" unique_id=1688827695]
 stream = ExtResource("5_vcsgt")
-
-[node name="Camera2D" type="Camera2D" parent="." unique_id=324529156]
-position = Vector2(246, 344)

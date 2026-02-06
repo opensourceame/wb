@@ -1,12 +1,14 @@
 extends Node2D
 class_name HexTile
 
-enum State { IDLE, SELECTED, HOVER, IN_WORD }
+enum State { IDLE, SELECTED, HOVER, IN_WORD, APPEARING, DISAPPEARING }
 const COLORS = [
 	Color.LIGHT_GOLDENROD,  
 	Color.DARK_GREEN,
 	Color.DARK_GOLDENROD,
-	Color.RED
+	Color.RED,
+	Color.BLACK,
+	Color(0, 0, 0, 0)
 ]
 signal tile_selected(tile: HexTile)
 signal drop_animation_completed(tile: HexTile)
@@ -14,12 +16,12 @@ signal drop_animation_completed(tile: HexTile)
 @export var letter: String = "A"
 @export var grid_q: int = 0
 @export var grid_r: int = 0
-@export var hex_radius: float = 32.0
+@export var hex_radius: float = 128.0
 
 var neighbours: Array = []
 var is_selected: bool = false
 var outline_color:    Color = Color.DARK_ORANGE
-var current_state = State.IDLE
+var current_state: int = State.APPEARING
 	#set(value):
 		#if current_state != value:
 			#current_state = value
@@ -32,13 +34,13 @@ var is_dropping: bool = false
 var drop_start_position: Vector2
 var drop_target_position: Vector2
 var drop_progress: float = 0.0
-var drop_duration: float = 5.0  # 5 seconds to drop one tile height
+var drop_duration: float = 8.0  # 5 seconds to drop one tile height
 
 # Node references
 var filled_polygon: Polygon2D
 var outline_line: Line2D
 var letter_label: Label
-
+	
 func _ready():
 	letter     = get_random_letter()
 	hex_points = generate_polygon_points(hex_radius)
@@ -78,6 +80,14 @@ func create_outline_polygon():
 	#outline_line.cap_mode = Line2D.LINE_CAP_ROUND
 	add_child(outline_line)
 
+func disappear():
+	current_state = State.DISAPPEARING
+	outline_line.queue_free()
+	var t = Timer.new()
+	t.wait_time = 0.5
+	t.timeout.connect(queue_free)
+	t.start()
+	
 func set_validation_color(color: Color):
 	#validation_color = color
 	outline_line.default_color = color
@@ -126,8 +136,14 @@ func get_random_letter() -> String:
 func _physics_process(delta):
 	# Smooth color transition
 	var target_color = COLORS[current_state]
-	if not target_color == filled_polygon.color:
-		filled_polygon.color = filled_polygon.color.lerp(target_color, delta * 10.0)
+	
+	if current_state == State.DISAPPEARING:
+		modulate = modulate.lerp(COLORS[State.DISAPPEARING], delta * 3)
+		#queue_free()
+	else:
+		if not target_color == filled_polygon.color:
+			filled_polygon.color = filled_polygon.color.lerp(target_color, delta * 10.0)
+	
 	
 	# Handle tile dropping animation
 	if is_dropping:
@@ -217,6 +233,9 @@ func exit_hover_state():
 	scale = Vector2(touch_scale, touch_scale)
 
 func _on_area_2d_input_event(viewport: Node, event: InputEvent, shape_idx: int):
+	if current_state == State.DISAPPEARING:
+		return
+		
 	# Handle mouse clicks
 	if event is InputEventMouseButton and event.pressed:
 		tile_selected.emit(self)
@@ -251,7 +270,7 @@ func get_grid_position() -> Vector2:
 func start_drop_animation():
 	# Calculate one tile height downward
 	var hex_height = hex_radius * sqrt(3.0)
-	drop_start_position = position
+	drop_start_position  = position
 	drop_target_position = position + Vector2(0, hex_height)
 	drop_progress = 0.0
 	is_dropping = true

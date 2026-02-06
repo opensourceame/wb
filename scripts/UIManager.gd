@@ -8,6 +8,8 @@ class_name UIManager
 @onready var shuffle_button: Button = $"../UI/ShuffleButton"
 @onready var clear_button: Button = $"../UI/ClearButton"
 @onready var words_found_label: Label = $"../UI/WordsFound"
+@onready var word_feedback = $"../UI/WordFeedback"
+@onready var feedback_label: Label = %FeedbackLabel
 
 var game_manager: GameManager
 var grid_manager: GridManager
@@ -51,12 +53,11 @@ func _on_time_updated(time: int):
 		time_label.text = "%02d:%02d" % [minutes, seconds]
 
 func _show_word_feedback(word: String, points: int, is_valid: bool):
-	var feedback_label = Label.new()
-	add_child(feedback_label)
-	feedback_label.text = "%s: +%d" % [word, points] if is_valid else "%s: Invalid" % word
-	feedback_label.modulate = Color.GREEN if is_valid else Color.RED
-	feedback_label.position = Vector2(100, 100 + words_found_label.get_child_count() * 30)
+	word_feedback.show()
+	word_feedback.modulate = Color.WHITE
+
+	feedback_label.text = "%s: +%d" % [word, points] if is_valid else "%s: Invalid" % word	
 	
 	var tween = create_tween()
-	tween.tween_property(feedback_label, "modulate:a", 0.0, 2.0)
-	tween.tween_callback(feedback_label.queue_free)
+	tween.tween_property(word_feedback, "modulate:a", 0.0, 2.0)
+	tween.tween_callback(word_feedback.hide)

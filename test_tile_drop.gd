@@ -10,6 +10,7 @@ func _ready():
 	print("  'C' - Start SINGLE tile drop cycle")
 	print("  'S' - Stop all animations (disables continuous mode)")
 	print("  'T' - Test single tile drop without row cycle")
+	print("  'R' - Select a random tile to test protection")
 	print("")
 	print("The system will:")
 	print("1. Drop all tiles down by one tile height (5 seconds)")
@@ -18,6 +19,8 @@ func _ready():
 	print("4. Update all tile positions and neighbour connections")
 	print("")
 	print("CONTINUOUS MODE: After each cycle, waits 2 seconds then starts next cycle")
+	print("SELECTION PROTECTION: Row cycles are SKIPPED if any tiles are selected")
+	print("  → Test: Start continuous mode, then select tiles to see protection")
 	print("")
 	
 	# Get reference to grid manager
@@ -57,7 +60,7 @@ func _input(event):
 				print("→ Continuous mode disabled")
 				
 			KEY_T:
-				print("\n🧪 Testing single tile drop without row cycle...")
+				print("\n🧪 Testing single drop without row cycle...")
 				# Test individual tile drop to verify animation works
 				if grid_manager.columns.size() > 0 and grid_manager.columns[0].size() > 0:
 					var test_tile = grid_manager.columns[0][0]
@@ -65,3 +68,22 @@ func _input(event):
 					print("→ Started drop on tile: ", test_tile.letter, " at (0,0)")
 				else:
 					print("✗ No tiles found for testing")
+					
+			KEY_R:
+				print("\n🎯 Selecting random tile to test protection...")
+				# Find and select a random tile
+				if grid_manager.columns.size() > 0:
+					var random_q = randi() % grid_manager.columns.size()
+					if grid_manager.columns[random_q].size() > 0:
+						var random_r = randi() % grid_manager.columns[random_q].size()
+						var test_tile = grid_manager.columns[random_q][random_r]
+						if test_tile:
+							grid_manager.select_tile(test_tile)
+							print("→ Selected tile: ", test_tile.letter, " at (", random_q, ",", random_r, ")")
+							print("→ Next cycle should be skipped!")
+						else:
+							print("✗ Selected tile was null")
+					else:
+						print("✗ No tiles in column ", random_q)
+				else:
+					print("✗ No columns available")

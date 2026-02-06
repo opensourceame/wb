@@ -7,7 +7,7 @@ signal word_building_ended(word: String)
 
 @export var grid_width:  int = 2
 @export var grid_height: int = 2
-@export var hex_size: float = 48.0
+@export var hex_size: float = 128.0
 @export var tile_scene: PackedScene
 
 @onready var game_manager = get_tree().current_scene.get_node('GameManager')
@@ -35,15 +35,27 @@ var particle_streams: Array[CPUParticles2D] = []
 var tiles_dropping: int = 0
 var is_row_cycle_active:    bool = false
 var continuous_cycle_mode:  bool = true
-var continuous_cycle_delay: float = 2.0  # Delay between cycles in continuous mode
+var continuous_cycle_delay: float = 5.0  # Delay between cycles in continuous mode
 var continuous_cycle_timer: Timer
 
-func _ready():
-	if tile_scene == null:
-		tile_scene = preload("res://scenes/HexTile.tscn")
-	
+func _ready():	
+	tile_scene = preload("res://scenes/HexTile.tscn")
+		
 	word_checker = game_manager.word_checker
-	
+		
+	create_hex_grid()
+	setup_cycle_timer()
+
+func setup_cycle_timer():
+	# Setup continuous cycle timer
+	continuous_cycle_timer = Timer.new()
+	add_child(continuous_cycle_timer)
+	continuous_cycle_timer.wait_time = continuous_cycle_delay
+	continuous_cycle_timer.one_shot = true
+	continuous_cycle_timer.timeout.connect(_on_continuous_cycle_delay)
+	continuous_cycle_timer.start()
+		
+func setup_touch():
 	# Setup long press timer for touch submit
 	long_press_timer = Timer.new()
 	add_child(long_press_timer)
@@ -51,14 +63,6 @@ func _ready():
 	long_press_timer.one_shot = true
 	long_press_timer.timeout.connect(_on_long_press)
 	
-	# Setup continuous cycle timer
-	continuous_cycle_timer = Timer.new()
-	add_child(continuous_cycle_timer)
-	continuous_cycle_timer.wait_time = continuous_cycle_delay
-	continuous_cycle_timer.one_shot = true
-	continuous_cycle_timer.timeout.connect(_on_continuous_cycle_delay)
-	
-	create_hex_grid()
 
 func create_hex_grid():
 	for q in range(grid_width):
@@ -139,15 +143,17 @@ func create_hex_tile(q: int, r: int):
 	tile.hex_radius = hex_size
 	tiles_canvas.add_child(tile)
 	
-	var pos = hex_to_pixel(q, r)
-	tile.position = pos
+	var pos = hex_to_pixel(q, r) + Vector2(hex_size * 2, hex_size * 2)
+	tile.global_position = pos
 	tile.grid_q = q
 	tile.grid_r = r
 	tile.set_letter(get_random_letter())
 	
+	print("GRID: tile ", tile.letter, " at ", pos)
 	grid[Vector2(q, r)] = tile
 	tile.tile_selected.connect(_on_tile_selected)
 	tile.drop_animation_completed.connect(_on_tile_drop_completed)
+	#tile.drop_animation_completed.connect(_cycle_rows())
 	
 	return tile
 
@@ -241,6 +247,7 @@ func deselect_tile(tile: HexTile):
 		redraw_all_arrows()
 
 func is_adjacent_to_last_selected(tile: HexTile) -> bool:
+	#return true
 	if selected_tiles.is_empty():
 		return true
 	
@@ -249,7 +256,7 @@ func is_adjacent_to_last_selected(tile: HexTile) -> bool:
 	print("last tile = ", last_tile)
 	print("last tile neighbours = ", last_tile.neighbour_letters())
 	
-	return last_tile.neighbours.find(tile) >= 0
+	return last_tile.neighbours.has(tile)
 
 func recalculate_word():
 	current_word = ""
@@ -530,8 +537,22 @@ func _on_tile_drop_completed(tile: HexTile):
 	tiles_dropping -= 1
 	
 	if tiles_dropping == 0 and is_row_cycle_active:
-		print("All tiles completed dropping - cycling rows...")
-		_cycle_rows()
+		# Check if any tiles are selected before cycling
+		if false:
+			print("⚠️ Tiles are selected - skipping row cycle to preserve word")
+			print("→ Selected tiles: ", selected_tiles.size())
+			for t in selected_tiles:
+				print("   ", t.letter, " at (", t.grid_q, ",", t.grid_r, ")")
+			
+			is_row_cycle_active = false
+			
+			# If in continuous mode, schedule next attempt after delay
+			if continuous_cycle_mode:
+				print("⏱️ Will retry row cycle in ", continuous_cycle_delay, " seconds...")
+				continuous_cycle_timer.start()
+		else:
+			print("All tiles completed dropping - cycling rows...")
+			_cycle_rows()
 
 func _cycle_rows():
 	print("🔄 Starting row cycle process...")
@@ -549,8 +570,12 @@ func _cycle_rows():
 	print("🗑️ Removing bottom row with letters: ", bottom_row_letters)
 	
 	# Remove bottom row tiles
+	var selected_bottom_row_tiles = false
 	for tile in bottom_row_tiles:
-		tile.queue_free()
+		if tile.current_state == HexTile.State.SELECTED:
+			selected_bottom_row_tiles = true
+		tile.disappear()
+		#tile.queue_free()
 	
 	# Shift all tiles down by one row
 	print("⬇️ Shifting tiles down by one row...")
@@ -580,14 +605,15 @@ func _cycle_rows():
 	
 	# Update all tile positions to match new grid coordinates
 	print("📍 Updating tile positions...")
-	_update_all_tile_positions()
+	#_update_all_tile_positions()
 	
 	# Rebuild neighbour connections
 	print("🔗 Rebuilding neighbour connections...")
 	_rebuild_neighbour_connections()
 	
 	# Clear any current selection since tiles changed
-	clear_selection()
+	if selected_bottom_row_tiles:
+		clear_selection()
 	
 	is_row_cycle_active = false
 	
