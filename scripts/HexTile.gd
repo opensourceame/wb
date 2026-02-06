@@ -2,7 +2,7 @@ extends Node2D
 class_name HexTile
 
 enum State { IDLE, SELECTED, HOVER, IN_WORD, APPEARING, DISAPPEARING }
-enum Type  { NORMAL, CLOCK }
+enum Type  { NORMAL, BONUS, CLOCK }
 const COLORS = [
 	Color.LIGHT_GOLDENROD,  
 	Color.YELLOW,
@@ -24,10 +24,6 @@ var is_selected: bool = false
 var outline_color:    Color = Color.DARK_ORANGE
 var type: int = Type.NORMAL
 var current_state: int = State.APPEARING
-	#set(value):
-		#if current_state != value:
-			#current_state = value
-			##_update_polygon_color()
 var touch_scale: float = 1.0  # NEW: Touch animation scale
 var hex_points : PackedVector2Array
 
@@ -44,13 +40,15 @@ var outline_line: Line2D
 var letter_label: Label
 	
 func _ready():
-	letter     = get_random_letter()
+	#letter     = get_random_letter()
 	hex_points = generate_polygon_points(hex_radius)
 	
 	create_filled_polygon()
 	create_outline_polygon()
 	create_letter_label()
 	create_collision_polygon()
+	
+	letter_label.text = letter
 
 	current_state = State.IDLE
 	
@@ -86,10 +84,10 @@ func create_outline_polygon():
 func disappear():
 	current_state = State.DISAPPEARING
 	outline_line.queue_free()
-	var t = Timer.new()
-	t.wait_time = 0.5
-	t.timeout.connect(queue_free)
-	t.start()
+	#var t = Timer.new()
+	#t.wait_time = 0.5
+	#t.timeout.connect(queue_free)
+	#t.start()
 	
 func set_validation_color(color: Color):
 	#validation_color = color
@@ -139,7 +137,7 @@ func get_random_letter() -> String:
 
 func _physics_process(delta):
 	# Smooth color transition
-	var target_color = COLORS[current_state]
+	var target_color = get_target_color()
 	
 	if current_state == State.DISAPPEARING:
 		modulate = modulate.lerp(COLORS[State.DISAPPEARING], delta * 3)
@@ -163,11 +161,6 @@ func _physics_process(delta):
 			var eased_t = t * t * (3.0 - 2.0 * t)  # Smoothstep
 			position = drop_start_position.lerp(drop_target_position, eased_t)
 
-func _update_polygon_color():
-	# Immediate color update for instant visual feedback
-	#filled_polygon.color = COLORS[current_state]
-	pass
-	
 func generate_polygon_points(radius: float):
 	var center = Vector2.ZERO
 	var points = PackedVector2Array()
@@ -178,15 +171,27 @@ func generate_polygon_points(radius: float):
 		points.append(Vector2(x, y))
 	return points
 
+func get_target_color():
+	if current_state == State.SELECTED:
+		COLORS[current_state] + Color.RED / 20
+		
+	match type:
+		Type.CLOCK:
+			return Color.WHITE
+		Type.BONUS:
+			return Color.ORANGE
+		Type.NORMAL:
+			return COLORS[current_state]
+			
 func set_letter(let):
 	letter = let
 	name   = let
-	letter_label.text = letter
-		
+	
 func set_type(tile_type):
 	type = tile_type
 	if type == Type.CLOCK:
-		set_letter("🕗")
+		$Label.hide()
+		$IconClock.show()		
 		
 func set_idle():
 	current_state = State.IDLE

@@ -13,6 +13,7 @@ signal word_building_ended(word: String)
 @onready var game_manager = get_tree().current_scene.get_node('GameManager')
 @onready var tiles_canvas = $Tiles
 @onready var arrows_canvas = $Arrows
+@onready var tile_generator = $TileGenerator
 
 # Access to game systems
 var word_checker: WordChecker
@@ -68,8 +69,11 @@ func create_hex_grid():
 	for q in range(grid_width):
 		columns.append([])
 		for r in range(grid_height):
-			var tile = create_hex_tile(q, r)
+			var tile = tile_generator.create_hex_tile(q, r)
 			columns[q].append(tile)
+			grid[Vector2(q, r)] = tile
+			tiles_canvas.add_child(tile)
+
 		
 	print("GRID: created grid")
 	print_grid()
@@ -137,42 +141,7 @@ func print_grid():
 	print("2:2 = " + columns[2][2].name + "\n")
 	for n in columns[2][2].neighbours:
 		print(n.name)
-	
-func create_hex_tile(q: int, r: int):
-	var tile = tile_scene.instantiate()
-	tile.hex_radius = hex_size
-	tiles_canvas.add_child(tile)
-	
-	var pos = hex_to_pixel(q, r) + Vector2(hex_size * 2, hex_size * 4)
-	tile.global_position = pos
-	tile.grid_q = q
-	tile.grid_r = r
-	if randf() < 0.1:
-		print("CLOCK")
-		tile.set_type(HexTile.Type.CLOCK)
-	else:
-		tile.set_letter(get_random_letter())
 
-	
-	print("GRID: tile ", tile.letter, " at ", pos)
-	grid[Vector2(q, r)] = tile
-	tile.tile_selected.connect(_on_tile_selected)
-	tile.drop_animation_completed.connect(_on_tile_drop_completed)
-	#tile.drop_animation_completed.connect(_cycle_rows())
-	
-	return tile
-
-func hex_to_pixel(q: int, r: int) -> Vector2:
-	var hex_width  = hex_size * 2.0
-	var hex_height = hex_size * sqrt(3.0)
-	
-	var x = q * hex_width * 0.75
-	var y = r * hex_height
-	
-	if q % 2 == 1:
-		y -= hex_height * 0.5
-	
-	return Vector2(x, y)
 
 func get_random_letter() -> String:
 	var letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -266,7 +235,7 @@ func is_adjacent_to_last_selected(tile: HexTile) -> bool:
 func recalculate_word():
 	current_word = ""
 	for tile in selected_tiles:
-		if tile.type == HexTile.Type.NORMAL:
+		if tile.type == HexTile.Type.NORMAL or tile.type == HexTile.Type.BONUS:
 			current_word += tile.letter
 		
 func update_word_display():
@@ -316,7 +285,8 @@ func clear_selection():
 	selected_tiles.clear()
 	current_word = ""
 	update_word_display()
-	clear_arrows()
+	#clear_arrows()
+	clear_particles()
 
 func _input(event):
 	# Handle keyboard/gamepad input
@@ -360,6 +330,7 @@ func submit_word():
 	game_manager.on_word_building_ended(current_word)
 	
 	clear_selection()
+	clear_particles()
 
 func draw_arrow(from_tile: HexTile, to_tile: HexTile):
 	var arrow = Line2D.new()
@@ -393,7 +364,7 @@ func redraw_all_arrows():
 # Particle System Functions
 func create_particle_stream(from_tile: HexTile, to_tile: HexTile):
 	var particles = CPUParticles2D.new()
-	particles.position = from_tile.position
+	#particles.position = from_tile.position
 	
 	# Calculate direction and distance
 	var direction = (to_tile.position - from_tile.position).normalized()
@@ -402,13 +373,13 @@ func create_particle_stream(from_tile: HexTile, to_tile: HexTile):
 	# Basic particle setup
 	particles.emitting = true
 	particles.visible = true
-	particles.amount = 10
+	particles.amount = 50
 	particles.lifetime = 1.0  # Longer lifetime for visibility
 	particles.explosiveness = 0.0  # Continuous emission
 	particles.fixed_fps =100.0
 	
 	# Gold/yellow gradient colors
-	particles.color = Color.GOLD
+	particles.color = Color.WHITE
 	particles.color_ramp = Gradient.new()
 	particles.color_ramp.add_point(0.0, Color.YELLOW)
 	particles.color_ramp.add_point(0.5, Color.GOLD)
@@ -416,13 +387,13 @@ func create_particle_stream(from_tile: HexTile, to_tile: HexTile):
 	
 	# Energy stream visual properties
 	particles.direction = Vector2(1, 0)  # Will be rotated
-	particles.spread = 2.0  # Slightly wider stream for visibility
+	particles.spread = 20.0  # Slightly wider stream for visibility
 	particles.initial_velocity_min = distance / particles.lifetime * 0.8
 	particles.initial_velocity_max = distance / particles.lifetime * 1.2
 	
 	# Particle size and shape
 	particles.scale_amount_min = 5.0
-	particles.scale_amount_max = 7.0
+	particles.scale_amount_max = 27.0
 	#particles.scale_amount_random = 0.5
 	
 	# Gravity and physics
@@ -435,7 +406,8 @@ func create_particle_stream(from_tile: HexTile, to_tile: HexTile):
 	particles.rotation = direction.angle()
 	
 	# Add to canvas and tracking array
-	arrows_canvas.add_child(particles)
+	#arrows_canvas.add_child(particles)
+	from_tile.add_child(particles)
 	particle_streams.append(particles)
 	
 	# Start emission and auto-cleanup
@@ -602,7 +574,7 @@ func _cycle_rows():
 	print("⬆️ Creating new top row...")
 	var new_row_letters = []
 	for q in range(grid_width):
-		var new_tile = create_hex_tile(q, 0)
+		var new_tile = tile_generator.create_hex_tile(q, 0)
 		columns[q][0] = new_tile
 		grid[Vector2(q, 0)] = new_tile
 		new_row_letters.append(new_tile.letter)
@@ -639,7 +611,7 @@ func _update_all_tile_positions():
 		for r in range(grid_height):
 			if columns[q] and columns[q][r]:
 				var tile = columns[q][r]
-				var new_pos = hex_to_pixel(q, r)
+				var new_pos = tile_generator.hex_to_pixel(q, r)
 				tile.position = new_pos
 
 func _rebuild_neighbour_connections():

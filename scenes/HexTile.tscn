@@ -2,11 +2,14 @@
 
 [ext_resource type="Script" uid="uid://bgsfj1c1tklfk" path="res://scripts/HexTile.gd" id="1_hex"]
 [ext_resource type="FontFile" uid="uid://badk0i7ujr12b" path="res://assets/fonts/RubikMoonrocks-Regular.ttf" id="2_ha4sb"]
+[ext_resource type="Texture2D" uid="uid://cgvrejimmyejv" path="res://assets/images/icon-clock.png" id="3_twun4"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_twun4"]
 font = ExtResource("2_ha4sb")
 font_size = 110
 font_color = Color(0.54140306, 0.38487375, 0, 1)
+outline_color = Color(0.9867516, 0.9867516, 0.9867516, 1)
+shadow_color = Color(0.12941177, 0.12941177, 0.12941177, 0.3647059)
 
 [node name="HexTile" type="Node2D" unique_id=1263209078]
 script = ExtResource("1_hex")
@@ -23,5 +26,12 @@ text = "?"
 label_settings = SubResource("LabelSettings_twun4")
 horizontal_alignment = 1
 vertical_alignment = 1
+
+[node name="IconClock" type="Sprite2D" parent="." unique_id=1557010718]
+visible = false
+modulate = Color(0.7292775, 0.5263634, 0.2014443, 0.6392157)
+z_index = 5
+scale = Vector2(0.146875, 0.146875)
+texture = ExtResource("3_twun4")
 
 [connection signal="input_event" from="CollisionArea" to="." method="_on_area_2d_input_event"]
