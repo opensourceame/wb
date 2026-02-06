@@ -1,0 +1,9 @@
+[gd_resource type="LabelSettings" format=3 uid="uid://cqh38xyhmv16p"]
+
+[ext_resource type="FontFile" uid="uid://badk0i7ujr12b" path="res://assets/fonts/RubikMoonrocks-Regular.ttf" id="1_ef251"]
+
+[resource]
+font = ExtResource("1_ef251")
+font_size = 72
+font_color = Color(0.9999998, 0.9774725, 0.9430102, 1)
+outline_color = Color(0.91187924, 0.8710522, 0, 1)

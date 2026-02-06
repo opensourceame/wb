@@ -59,5 +59,5 @@ func _show_word_feedback(word: String, points: int, is_valid: bool):
 	feedback_label.text = "%s: +%d" % [word, points] if is_valid else "%s: Invalid" % word	
 	
 	var tween = create_tween()
-	tween.tween_property(word_feedback, "modulate:a", 0.0, 2.0)
+	tween.tween_property(word_feedback, "modulate:a", 0.0, 3.0)
 	tween.tween_callback(word_feedback.hide)

@@ -87,9 +87,9 @@ func resume_game():
 	
 func get_game_stats() -> Dictionary:
 	return {
-		"score": score,
-		"words_found": words_found.size(),
-		"total_words": words_found,
+		"score":        score,
+		"words_found":  words_found.size(),
+		"total_words":  words_found,
 		"time_elapsed": game_time
 	}
 

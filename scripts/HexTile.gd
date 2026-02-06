@@ -2,18 +2,19 @@ extends Node2D
 class_name HexTile
 
 enum State { IDLE, SELECTED, HOVER, IN_WORD, APPEARING, DISAPPEARING }
+enum Type  { NORMAL, CLOCK }
 const COLORS = [
 	Color.LIGHT_GOLDENROD,  
-	Color.DARK_GREEN,
+	Color.YELLOW,
 	Color.DARK_GOLDENROD,
-	Color.RED,
+	Color.SADDLE_BROWN,
 	Color.BLACK,
-	Color(0, 0, 0, 0)
+	Color.TRANSPARENT
 ]
 signal tile_selected(tile: HexTile)
 signal drop_animation_completed(tile: HexTile)
 
-@export var letter: String = "A"
+@export var letter: String = "?"
 @export var grid_q: int = 0
 @export var grid_r: int = 0
 @export var hex_radius: float = 128.0
@@ -21,6 +22,7 @@ signal drop_animation_completed(tile: HexTile)
 var neighbours: Array = []
 var is_selected: bool = false
 var outline_color:    Color = Color.DARK_ORANGE
+var type: int = Type.NORMAL
 var current_state: int = State.APPEARING
 	#set(value):
 		#if current_state != value:
@@ -56,6 +58,7 @@ func create_filled_polygon():
 	# create filled polygon
 	filled_polygon = Polygon2D.new()
 	filled_polygon.polygon = hex_points
+	filled_polygon.color = Color.TRANSPARENT
 	add_child(filled_polygon)
 
 func create_collision_polygon():
@@ -73,7 +76,7 @@ func create_outline_polygon():
 	outline_points.append(hex_points[0])
 	
 	outline_line.points = outline_points
-	outline_line.width = 3.0
+	outline_line.width = 8.0
 	outline_line.default_color = outline_color
 	outline_line.antialiased = true
 	outline_line.joint_mode = Line2D.LINE_JOINT_ROUND
@@ -94,16 +97,17 @@ func set_validation_color(color: Color):
 		
 func create_letter_label():
 	# create label for letter
-	letter_label = Label.new()
-	letter_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	letter_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	letter_label.position = Vector2(0, 0)
-	letter_label.size = Vector2(hex_radius * 2, hex_radius * 2)
-	letter_label.position -= letter_label.size / 2
+	letter_label = $Label
+	#letter_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	#letter_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	#letter_label.position = Vector2(0, 0)
+	#letter_label.size = Vector2(hex_radius * 2, hex_radius * 2)
+	#letter_label.position -= letter_label.size / 2
 	var font_size = int(hex_radius * 0.8)
-	letter_label.add_theme_font_size_override("font_size", font_size)
-	letter_label.add_theme_color_override("font_color", Color.BLACK)
-	add_child(letter_label)
+	#letter_label.add_theme_font_size_override("font_size", font_size)
+	#letter_label.add_theme_color_override("font_color", Color.BLACK)
+	letter_label.text = letter
+	#add_child(letter_label)
 	
 func add_neighbour(tile: HexTile):
 	neighbours.append(tile)
@@ -179,13 +183,18 @@ func set_letter(let):
 	name   = let
 	letter_label.text = letter
 		
+func set_type(tile_type):
+	type = tile_type
+	if type == Type.CLOCK:
+		set_letter("🕗")
+		
 func set_idle():
 	current_state = State.IDLE
 	
 func set_selected():
 	current_state = State.SELECTED
 	print("selected ", self)
-	
+
 func set_in_word():
 	current_state = State.IN_WORD
 

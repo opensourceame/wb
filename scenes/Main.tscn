@@ -3,38 +3,31 @@
 [ext_resource type="Script" uid="uid://d3gb6npr6oo4m" path="res://scripts/GameManager.gd" id="2_game"]
 [ext_resource type="PackedScene" uid="uid://dev1vlrye5a0i" path="res://scenes/GridManager.tscn" id="2_rarhs"]
 [ext_resource type="Script" uid="uid://bewyf1ek3euuf" path="res://scripts/UIManager.gd" id="3_ui"]
+[ext_resource type="FontFile" uid="uid://bv8hbsw2wqbmi" path="res://assets/fonts/RubikDistressed-Regular.ttf" id="4_nxtc6"]
 [ext_resource type="AudioStream" uid="uid://dqhsrebau2rjr" path="res://sounds/kaching.mp3" id="4_rarhs"]
+[ext_resource type="LabelSettings" uid="uid://cqh38xyhmv16p" path="res://assets/fonts/general_label_settings.tres" id="5_jlsqs"]
 [ext_resource type="AudioStream" uid="uid://fh5ylhcf6t2g" path="res://sounds/short-beep.mp3" id="5_vcsgt"]
-
-[sub_resource type="SystemFont" id="SystemFont_rarhs"]
-
-[sub_resource type="LabelSettings" id="LabelSettings_0bbpv"]
-font = SubResource("SystemFont_rarhs")
-font_size = 41
-font_color = Color(0.65836513, 0.65799564, 0, 1)
-outline_size = 10
-outline_color = Color(0.019554144, 0.019554138, 0.019554136, 1)
-shadow_color = Color(0.34781712, 0.3478169, 0.34781682, 0.67058825)
-
-[sub_resource type="LabelSettings" id="LabelSettings_nxtc6"]
-font_size = 24
-
-[sub_resource type="SystemFont" id="SystemFont_vcsgt"]
-
-[sub_resource type="LabelSettings" id="LabelSettings_c01mt"]
-font = SubResource("SystemFont_vcsgt")
-font_size = 48
+[ext_resource type="Texture2D" uid="uid://bot0hpem4nsmm" path="res://assets/backgrounds/bees.png" id="6_c01mt"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_vcsgt"]
-font_size = 67
+font = ExtResource("4_nxtc6")
+font_size = 89
+outline_size = 2
+outline_color = Color(0.618242, 0.48203105, 0, 1)
 
 [node name="Main" type="Node2D" unique_id=1302130063]
 metadata/_edit_lock_ = true
 
+[node name="Bees" type="Sprite2D" parent="." unique_id=2016562393]
+self_modulate = Color(0.5008638, 0.338319, 0, 1)
+position = Vector2(570, 1202)
+scale = Vector2(1.8478965, 2.6674106)
+texture = ExtResource("6_c01mt")
+
 [node name="GridManager" parent="." unique_id=895251005 instance=ExtResource("2_rarhs")]
 grid_width = 5
-grid_height = 5
-hex_size = 64.0
+grid_height = 8
+hex_size = 100.0
 metadata/_edit_lock_ = true
 
 [node name="Tiles" type="CanvasLayer" parent="GridManager" unique_id=305873846]
@@ -70,7 +63,7 @@ offset_right = 199.0
 offset_bottom = -145.0
 grow_horizontal = 2
 grow_vertical = 0
-label_settings = SubResource("LabelSettings_0bbpv")
+label_settings = ExtResource("5_jlsqs")
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -78,13 +71,13 @@ vertical_alignment = 1
 anchors_preset = 2
 anchor_top = 1.0
 anchor_bottom = 1.0
-offset_left = 640.0
-offset_top = -896.0
-offset_right = 740.0
-offset_bottom = -856.0
+offset_left = 39.0
+offset_top = -2280.0
+offset_right = 428.0
+offset_bottom = -2172.0
 grow_vertical = 0
 text = "Score: 0"
-label_settings = SubResource("LabelSettings_nxtc6")
+label_settings = ExtResource("5_jlsqs")
 vertical_alignment = 1
 
 [node name="TimeDisplay" type="Label" parent="UI" unique_id=269649100]
@@ -93,14 +86,14 @@ anchor_left = 1.0
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -160.0
-offset_top = -1016.0
-offset_right = -37.0
-offset_bottom = -949.0
+offset_left = -312.0
+offset_top = -2280.0
+offset_right = -25.0
+offset_bottom = -2172.0
 grow_horizontal = 0
 grow_vertical = 0
 text = "00:00"
-label_settings = SubResource("LabelSettings_c01mt")
+label_settings = ExtResource("5_jlsqs")
 horizontal_alignment = 2
 vertical_alignment = 1
 
@@ -108,13 +101,13 @@ vertical_alignment = 1
 anchors_preset = 2
 anchor_top = 1.0
 anchor_bottom = 1.0
-offset_left = 640.0
-offset_top = -936.0
-offset_right = 820.0
-offset_bottom = -896.0
+offset_left = 428.0
+offset_top = -2280.0
+offset_right = 831.0
+offset_bottom = -2172.0
 grow_vertical = 0
 text = "Words: 0"
-label_settings = SubResource("LabelSettings_nxtc6")
+label_settings = ExtResource("5_jlsqs")
 vertical_alignment = 1
 
 [node name="SubmitButton" type="Button" parent="UI" unique_id=559092073]
@@ -175,20 +168,25 @@ text = "Clear"
 
 [node name="WordFeedback" type="Node2D" parent="UI" unique_id=634489320]
 visible = false
+metadata/_edit_group_ = true
 
 [node name="Polygon2D" type="Polygon2D" parent="UI/WordFeedback" unique_id=976529351]
-position = Vector2(56, 40)
-color = Color(0.5033745, 0.5033746, 0.5033746, 1)
-polygon = PackedVector2Array(-48, 272, 56, 232, 152, 272, 248, 232, 360, 208, 448, 272, 544, 272, 584, 352, 536, 448, 424, 440, 336, 376, 224, 424, 144, 392, 32, 400, -64, 368, -56, 280)
+position = Vector2(243, 592)
+scale = Vector2(1.1358025, 1.4791666)
+color = Color(0.9598914, 0.7302791, 0, 1)
+polygon = PackedVector2Array(-48, 272, 56, 232, 152, 272, 248, 232, 360, 208, 448, 272, 544, 272, 646.51074, 343.88733, 536, 448, 424, 440, 336, 376, 224, 424, 144, 392, 32, 400, -64, 368, -56, 280)
 
 [node name="FeedbackLabel" type="Label" parent="UI/WordFeedback" unique_id=477729317]
 unique_name_in_owner = true
-offset_left = 104.0
-offset_top = 320.0
-offset_right = 558.0
-offset_bottom = 448.0
+offset_left = 249.0
+offset_top = 1000.0
+offset_right = 872.0
+offset_bottom = 1147.0
+text = "FEEDBACK"
 label_settings = SubResource("LabelSettings_vcsgt")
 horizontal_alignment = 1
+vertical_alignment = 1
+metadata/_edit_use_anchors_ = true
 
 [node name="Sounds" type="Node" parent="." unique_id=948160424]
 

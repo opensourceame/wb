@@ -143,11 +143,16 @@ func create_hex_tile(q: int, r: int):
 	tile.hex_radius = hex_size
 	tiles_canvas.add_child(tile)
 	
-	var pos = hex_to_pixel(q, r) + Vector2(hex_size * 2, hex_size * 2)
+	var pos = hex_to_pixel(q, r) + Vector2(hex_size * 2, hex_size * 4)
 	tile.global_position = pos
 	tile.grid_q = q
 	tile.grid_r = r
-	tile.set_letter(get_random_letter())
+	if randf() < 0.1:
+		print("CLOCK")
+		tile.set_type(HexTile.Type.CLOCK)
+	else:
+		tile.set_letter(get_random_letter())
+
 	
 	print("GRID: tile ", tile.letter, " at ", pos)
 	grid[Vector2(q, r)] = tile
@@ -261,7 +266,8 @@ func is_adjacent_to_last_selected(tile: HexTile) -> bool:
 func recalculate_word():
 	current_word = ""
 	for tile in selected_tiles:
-		current_word += tile.letter
+		if tile.type == HexTile.Type.NORMAL:
+			current_word += tile.letter
 		
 func update_word_display():
 	%WordDisplay.text = current_word

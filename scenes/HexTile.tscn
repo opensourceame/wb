@@ -1,16 +1,27 @@
 [gd_scene format=3 uid="uid://c1n2v3w4x5y6"]
 
 [ext_resource type="Script" uid="uid://bgsfj1c1tklfk" path="res://scripts/HexTile.gd" id="1_hex"]
+[ext_resource type="FontFile" uid="uid://badk0i7ujr12b" path="res://assets/fonts/RubikMoonrocks-Regular.ttf" id="2_ha4sb"]
 
-[sub_resource type="CircleShape2D" id="CircleShape2D_1"]
-radius = 28.0
+[sub_resource type="LabelSettings" id="LabelSettings_twun4"]
+font = ExtResource("2_ha4sb")
+font_size = 110
+font_color = Color(0.54140306, 0.38487375, 0, 1)
 
 [node name="HexTile" type="Node2D" unique_id=1263209078]
 script = ExtResource("1_hex")
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1973369788]
-shape = SubResource("CircleShape2D_1")
-
 [node name="CollisionArea" type="Area2D" parent="." unique_id=5722082]
+
+[node name="Label" type="Label" parent="." unique_id=462354888]
+z_index = 4
+offset_left = -64.0
+offset_top = -64.0
+offset_right = 64.0
+offset_bottom = 64.0
+text = "?"
+label_settings = SubResource("LabelSettings_twun4")
+horizontal_alignment = 1
+vertical_alignment = 1
 
 [connection signal="input_event" from="CollisionArea" to="." method="_on_area_2d_input_event"]
