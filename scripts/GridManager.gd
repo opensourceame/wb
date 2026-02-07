@@ -65,11 +65,19 @@ func setup_touch():
 	long_press_timer.timeout.connect(_on_long_press)
 	
 
+func _on_tile_drag_over(tile):
+	if not is_adjacent_to_last_selected(tile):
+		return
+	
+	printerr("DRAG OVER", tile)
+	select_tile(tile)
+	
 func create_hex_grid():
 	for q in range(grid_width):
 		columns.append([])
 		for r in range(grid_height):
 			var tile = tile_generator.create_hex_tile(q, r)
+			tile.drag_over.connect(_on_tile_drag_over)
 			columns[q].append(tile)
 			grid[Vector2(q, r)] = tile
 			tiles_canvas.add_child(tile)
@@ -288,47 +296,80 @@ func clear_selection():
 	#clear_arrows()
 	clear_particles()
 
+
+func last_selected_tile():
+	if selected_tiles.is_empty():
+		return false
+		
+	return selected_tiles[-1]
+	
 func _input(event):
-	# Handle keyboard/gamepad input
+	var lst = last_selected_tile()
+	
+	if event is InputEventScreenDrag:
+		if not lst:
+			return
+			
+		if lst.is_event_local(event):
+			return
+			
+		for n in lst.neighbours:
+			print("pos = ", event.position, " neighbour ", n.letter, " pos = ", n.position)
+			if n.is_event_local(event):
+				select_tile(n)
+				
+		print("DRAG - ", event.position)
+
+	if event is InputEventScreenTouch:
+		if event.is_released() and not selected_tiles.is_empty():
+			submit_word()
+			
 	if event.is_action_pressed("ui_accept"):
 		submit_word()
-	elif event.is_action_pressed("ui_cancel"):
+		
+	if event.is_action_pressed("ui_cancel"):
 		clear_selection()
 	
-	# Handle touch gestures
-	elif event is InputEventScreenTouch and event.pressed:
-		# Start tracking touch for potential long press
-		touch_start_time = Time.get_time_dict_from_system()["second"] + Time.get_time_dict_from_system()["microsecond"] / 1000000.0
-		touch_start_pos = event.position
-		is_long_press = false
-		long_press_timer.start()
-		
-	elif event is InputEventScreenTouch and not event.pressed:
-		# Touch released
-		if is_long_press and current_word.length() >= 3:
-			# Long press - submit word
-			submit_word()
-		else:
-			# Quick tap outside tiles - clear selection
-			var touched_tile = get_tile_at_position(event.position)
-			if not touched_tile:
-				clear_selection()
-		
-		long_press_timer.stop()
+	return
 	
-	elif event is InputEventScreenDrag:
-		# Touch drag is handled by individual tiles
-		pass
+#func _input_touch_event():
+	## Handle touch gestures
+	#if event is InputEventScreenTouch and event.pressed:
+		## Start tracking touch for potential long press
+		##touch_start_time = Time.get_time_dict_from_system()["second"] + Time.get_time_dict_from_system()["microsecond"] / 1000000.0
+		#touch_start_pos = event.position
+		#is_long_press = false
+		#long_press_timer.start()
+			#
+	#elif event is InputEventScreenTouch and not event.pressed:
+		## Touch released
+		#if is_long_press and current_word.length() >= 3:
+			## Long press - submit word
+			#submit_word()
+		#else:
+			## Quick tap outside tiles - clear selection
+			#var touched_tile = get_tile_at_position(event.position)
+			#if not touched_tile:
+				#clear_selection()
+		#
+		#long_press_timer.stop()
+	#
+	#elif event is InputEventScreenDrag:
+		## Touch drag is handled by individual tiles
+		#pass
 
 func submit_word():
 	if current_word.length() < 3:
 		return 
 
-	game_manager.submit_word(current_word)
-		
-	# Emit word building ended signal
+	if game_manager.submit_word(current_word):
+		for tile in selected_tiles:
+			if tile.type == HexTile.Type.CLOCK:
+				game_manager.game_time += 30.0
+			tile.set_type(HexTile.Type.NORMAL)
+
 	game_manager.on_word_building_ended(current_word)
-	
+				
 	clear_selection()
 	clear_particles()
 
@@ -427,7 +468,7 @@ func create_particle_stream(from_tile: HexTile, to_tile: HexTile):
 
 func clear_particles():
 	for stream in particle_streams:
-		stream.emitting = false
+		#stream.emitting = false
 		stream.queue_free()
 	particle_streams.clear()
 	

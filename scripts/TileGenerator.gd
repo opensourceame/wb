@@ -18,6 +18,7 @@ func create_hex_tile(q: int, r: int):
 	var tile = tile_scene.instantiate()
 	tile.hex_radius = hex_size
 	
+	# TODO: move positioning to grid manager
 	var pos = hex_to_pixel(q, r) + Vector2(hex_size * 2, hex_size * 4)
 	tile.global_position = pos
 	tile.grid_q = q

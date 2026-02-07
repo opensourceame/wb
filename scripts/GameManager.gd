@@ -10,7 +10,7 @@ signal word_building_ended(word: String)
 
 var score: int = 0
 var words_found: Array[String] = []
-var game_time: int = 0
+var game_time: int = 120.0
 var is_game_active: bool = true
 var word_checker: WordChecker
 
@@ -28,7 +28,7 @@ func _ready():
 
 func _on_timer_timeout():
 	if is_game_active:
-		game_time += 1
+		game_time -= 1
 		game_time_updated.emit(game_time)
 
 func submit_word(word: String):
@@ -52,7 +52,7 @@ func submit_word(word: String):
 	words_found.append(word)
 	word_submitted.emit(word, points)
 	
-	grid_manager.clear_selection()
+	#grid_manager.clear_selection()
 	
 	$"../Sounds/Kaching".play()
 	

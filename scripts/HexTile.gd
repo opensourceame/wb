@@ -12,6 +12,7 @@ const COLORS = [
 	Color.TRANSPARENT
 ]
 signal tile_selected(tile: HexTile)
+signal drag_over(tile: HexTile)
 signal drop_animation_completed(tile: HexTile)
 
 @export var letter: String = "?"
@@ -192,7 +193,10 @@ func set_type(tile_type):
 	if type == Type.CLOCK:
 		$Label.hide()
 		$IconClock.show()		
-		
+	else:
+		$Label.show()
+		$IconClock.hide()
+			
 func set_idle():
 	current_state = State.IDLE
 	
@@ -210,21 +214,29 @@ func clear_hover():
 	if current_state == State.HOVER:
 		current_state = State.IDLE
 	
-
 # Touch hover effects using state management
-func _input(event):
-	if event is InputEventScreenTouch:
-		var global_pos = event.position
-		if _is_point_inside_hex(global_pos):
-			if event.pressed:
-				enter_hover_state()
-			else:
-				exit_hover_state()
-	
-	# Handle multi-touch scenarios
-	elif event is InputEventScreenDrag:
-		# This is handled in area_2d_input_event for better performance
-		pass
+#func _input(event):		
+	#if not event is InputEventScreenDrag:
+		#return
+		#
+	#if not is_event_local(event):
+		#return
+#
+	##if event is InputEventScreenTouch:
+		##if current_state == State.SELECTED:
+			##return
+			##
+		##if event.pressed:
+			##enter_hover_state()
+		##else:
+			##exit_hover_state()
+	#
+	## Handle multi-touch scenarios
+	#elif event is InputEventScreenDrag:
+		#if current_state == State.SELECTED:
+			#return
+			#
+		#drag_over.emit("self")
 
 func enter_hover_state():
 	if current_state == State.IDLE:
@@ -254,24 +266,31 @@ func _on_area_2d_input_event(viewport: Node, event: InputEvent, shape_idx: int):
 	if event is InputEventMouseButton and event.pressed:
 		tile_selected.emit(self)
 	
-	# Handle touch events
-	elif event is InputEventScreenTouch and event.pressed:
-		tile_selected.emit(self)
-		enter_hover_state()
-	elif event is InputEventScreenTouch and not event.pressed:
-		exit_hover_state()
-	
+	## Handle touch events
+	#elif event is InputEventScreenTouch and event.pressed:
+		#tile_selected.emit(self)
+		#enter_hover_state()
+	#elif event is InputEventScreenTouch and not event.pressed:
+		#exit_hover_state()
+	#
 	# Handle touch/drag events for continuous selection
-	elif event is InputEventScreenDrag:
-		# Convert screen position to global position
-		var global_pos = event.position
-		# Check if this touch/drag is over this tile
-		if _is_point_inside_hex(global_pos):
-			tile_selected.emit(self)
-			enter_hover_state()
-		else:
-			exit_hover_state()
+	#elif event is InputEventScreenDrag:
+		## Convert screen position to global position
+		#var global_pos = event.position
+		## Check if this touch/drag is over this tile
+		#if _is_point_inside_hex(global_pos):
+			#tile_selected.emit(self)
+			#enter_hover_state()
+		#else:
+			#exit_hover_state()
 
+func is_event_local(event: InputEvent) -> bool:
+	return event.position.distance_to(position) < hex_radius
+	if not event.has_method("position"):
+		return false
+
+	return _is_point_inside_hex(event.position)
+	
 func _is_point_inside_hex(point: Vector2) -> bool:
 	# Convert screen point to local coordinates
 	var local_point = to_local(point)
